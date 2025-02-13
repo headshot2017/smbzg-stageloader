@@ -171,6 +171,8 @@ namespace StageLoader
                         }
 
                         data.BattleBackgroundDataList.Add(bgdata);
+                        if (json.Disable_AirMovementRush)
+                            data.AirRushExceptionIndexList.Add(data.BattleBackgroundDataList.Count-1);
                     }
                 }
 
