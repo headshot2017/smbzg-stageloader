@@ -2,7 +2,7 @@
 	// Sky color. RGB values between 0-255
 	"SkyColor": [0, 0, 0],
 
-	// Cloud sprite bilinear filtering
+	// Cloud sprite bilinear filtering. true/false
 	// You can have multiple cloud sprites - cloud_0.png, cloud_1.png...
 	"CloudSprite_Filter": true,
 

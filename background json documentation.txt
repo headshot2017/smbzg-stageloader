@@ -31,6 +31,10 @@
 	// 1: Default crater, or crater.png if it exists
 	"Crater_Mode": 1,
 
+	// Custom crater texture bilinear filtering. true/false
+	// Only taken into account if Crater_Mode is 1 and crater.png exists.
+	"CustomCrater_Filter": false,
+
 	// Do not allow Air Movement Rushes in this background
 	"Disable_AirMovementRush": false
 }
