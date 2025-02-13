@@ -28,7 +28,9 @@
 
 	// How to display a crater after a Movement Rush ends:
 	// 0: No crater
-	// 1: Default crater
-	// 2: crater.png
-	"Crater_Mode": 1
+	// 1: Default crater, or crater.png if it exists
+	"Crater_Mode": 1,
+
+	// Do not allow Air Movement Rushes in this background
+	"Disable_AirMovementRush": false
 }

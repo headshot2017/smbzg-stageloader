@@ -1,0 +1,13 @@
+{
+	// Sky color. RGB values between 0-255
+	"SkyColor": [0, 0, 0],
+
+	// Cloud sprite bilinear filtering
+	// You can have multiple cloud sprites - cloud_0.png, cloud_1.png...
+	"CloudSprite_Filter": true,
+
+	// Air Movement Rush prefab - specifies the behavior of cloud particles.
+	// 0: Use the Super Mario World prefab. Many clouds spawn close together
+	// 1: Use the Yoshi Island prefab. Less clouds spawn, far from each other
+	"AirMovementRush_Prefab": 0
+}
