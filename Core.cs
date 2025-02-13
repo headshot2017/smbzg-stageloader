@@ -5,7 +5,7 @@ using System.Reflection;
 using SMBZG.CharacterSelect;
 using UnityEngine.UI;
 
-[assembly: MelonInfo(typeof(StageLoader.Core), "StageLoader", "1.0.0", "Headshotnoby/headshot2017", null)]
+[assembly: MelonInfo(typeof(StageLoader.Core), "StageLoader", "1.0.1", "Headshotnoby/headshot2017", null)]
 [assembly: MelonGame("Jonathan Miller aka Zethros", "SMBZ-G")]
 
 namespace StageLoader
@@ -66,18 +66,6 @@ namespace StageLoader
             GameObject obj = new GameObject("StageLoader");
             GameObject.DontDestroyOnLoad(obj);
             StageLoaderComponent dl = obj.AddComponent<StageLoaderComponent>();
-
-            if (stageDropdown != null)
-            {
-                stageDropdown.options.Clear();
-
-                List<string> stageNames = new List<string>();
-                foreach (StageData stage in customStages)
-                    stageNames.Add(stage.name);
-
-                stageDropdown.AddOptions(stageNames);
-                stageDropdown.RefreshShownValue();
-            }
         }
 
         public void LoadCustomStageUI()

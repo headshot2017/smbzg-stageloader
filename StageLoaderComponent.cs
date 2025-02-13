@@ -254,6 +254,19 @@ namespace StageLoader
             if (Core.messageType != 2)
                 Core.messageType = 0;
             Application.logMessageReceived -= OnLog;
+
+            if (Core.stageDropdown != null)
+            {
+                Core.stageDropdown.options.Clear();
+
+                List<string> stageNames = new List<string>();
+                foreach (StageData stage in Core.customStages)
+                    stageNames.Add(stage.name);
+
+                Core.stageDropdown.AddOptions(stageNames);
+                Core.stageDropdown.value = 0;
+            }
+
             Destroy(gameObject);
         }
 
