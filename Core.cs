@@ -35,6 +35,7 @@ namespace StageLoader
         public void LoadCustomStages()
         {
             GameObject obj = new GameObject("StageLoader");
+            GameObject.DontDestroyOnLoad(obj);
             StageLoaderComponent dl = obj.AddComponent<StageLoaderComponent>();
 
             if (stageDropdown != null)
