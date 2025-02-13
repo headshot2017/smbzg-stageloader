@@ -21,6 +21,7 @@ public class BackgroundDataJson
     public float   Ground_PixelsPerUnit;
 
     public int     Crater_Mode;
+    public bool    CustomCrater_Filter;
 
     public bool    Disable_AirMovementRush;
 }

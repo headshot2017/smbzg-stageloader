@@ -125,20 +125,33 @@ namespace StageLoader
                         bgdata.MovementRushClosingCinematic = original.MovementRushClosingCinematic;
                         bgdata.KoopaBros_BackgroundSpriteLayer = original.KoopaBros_BackgroundSpriteLayer;
 
-                        switch (json.Crater_Mode)
+                        if (json.Crater_Mode == 0)
+                            bgdata.Prefab_Crater = null;
+                        else
                         {
-                            case 0:
-                                bgdata.Prefab_Crater = null;
-                                break;
+                            bgdata.Prefab_Crater = original.Prefab_Crater;
+                            /*
+                            if (File.Exists($"{bgName}/crater.png"))
+                            {
+                                GameObject customCrater = GameObject.Instantiate(original.Prefab_Crater);
+                                customCrater.SetActive(false);
+                                customCrater.name = "Custom Crater";
+                                GameObject.DontDestroyOnLoad(customCrater);
 
-                            case 2:
-                                bgdata.Prefab_Crater = original.Prefab_Crater;
-                                break;
+                                yield return TextureDownload(Uri.EscapeUriString($"file:///{bgName}/crater.png"));
+                                if (!json.CustomCrater_Filter)
+                                    texture.filterMode = FilterMode.Point;
+                                Sprite crater = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(.5f, .5f), 30);
+                                crater.name = "crater.png";
 
-                            default:
-                                bgdata.Prefab_Crater = original.Prefab_Crater;
-                                break;
+                                SpriteRenderer spriteRenderer = customCrater.transform.GetChild(0).gameObject.GetComponent<SpriteRenderer>();
+                                spriteRenderer.sprite = crater;
+
+                                bgdata.Prefab_Crater = customCrater;
+                            }
+                            */
                         }
+
 
                         // Load music.
                         // Try background-specific music first.
