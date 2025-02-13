@@ -14,16 +14,45 @@ namespace StageLoader
     {
         public static List<StageData> customStages;
         public static Dropdown stageDropdown;
+        public static int messageType;
+        public static string guiMsg;
 
         public override void OnInitializeMelon()
         {
             customStages = new List<StageData>();
             stageDropdown = null;
+            messageType = 0;
         }
 
         public override void OnLateInitializeMelon()
         {
             LoadCustomStages();
+        }
+
+        public override void OnGUI()
+        {
+            int w = 240 * 2;
+            int h = 180 * 2;
+            switch (messageType)
+            {
+                case 1:
+                    GUI.BeginGroup(new Rect(Screen.width / 2 - w/2, Screen.height / 2 - h/2, w, h));
+                    GUI.Box(new Rect(0, 0, w, h), "StageLoader");
+                    GUI.Label(new Rect(32, 32, w - 64, h - 64), guiMsg);
+                    GUI.EndGroup();
+                    break;
+
+                case 2:
+                    w = 480 * 2;
+                    h = 360 * 2;
+                    GUI.BeginGroup(new Rect(Screen.width / 2 - w / 2, Screen.height / 2 - h / 2, w, h));
+                    GUI.Box(new Rect(0, 0, w, h), "StageLoader");
+                    GUI.Label(new Rect(32, 32, w - 64, h - 64), guiMsg);
+                    if (GUI.Button(new Rect(20, h - 64 - 8, w - 40, 64), "OK"))
+                        messageType = 0;
+                    GUI.EndGroup();
+                    break;
+            }
         }
 
         public override void OnSceneWasInitialized(int buildIndex, string sceneName)

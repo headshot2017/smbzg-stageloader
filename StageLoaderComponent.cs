@@ -11,6 +11,8 @@ namespace StageLoader
     public class StageLoaderComponent : MonoBehaviour
     {
         public Texture2D texture;
+        string currStage;
+        string currStageType;
 
         void Start()
         {
@@ -19,6 +21,9 @@ namespace StageLoader
 
         IEnumerator LoadStages()
         {
+            Application.logMessageReceived += OnLog;
+
+            Core.messageType = 1;
             Core.customStages.Clear();
 
             if (!Directory.Exists($"{Application.streamingAssetsPath}/Stages"))
@@ -36,7 +41,9 @@ namespace StageLoader
                 data.SkyDataList = new List<SkyBackgroundData>();
                 data.AirRushExceptionIndexList = new List<int>();
 
-                Melon<Core>.Logger.Msg($"Loading custom stage: {data.name}");
+                currStage = data.name;
+                Melon<Core>.Logger.Msg($"Loading custom stage: {currStage}");
+                Core.guiMsg = $"Loading custom stage:\n{currStage}";
 
                 // Load global stage music, if available
                 UnityWebRequest www;
@@ -67,6 +74,7 @@ namespace StageLoader
                     foreach (string _bgName in backgrounds)
                     {
                         string bgName = _bgName.Replace('\\', '/');
+                        currStageType = $"Background \"{Path.GetFileName(bgName)}\"";
 
                         BattleBackgroundData bgdata = ScriptableObject.CreateInstance<BattleBackgroundData>();
                         BattleBackgroundData original = BattleCache.ins.Stage_MarioCircuit.BattleBackgroundDataList[0];
@@ -196,6 +204,7 @@ namespace StageLoader
                     foreach (string _skyName in skies)
                     {
                         string skyName = _skyName.Replace('\\', '/');
+                        currStageType = $"Sky \"{Path.GetFileName(skyName)}\"";
 
                         SkyBackgroundData skydata = ScriptableObject.CreateInstance<SkyBackgroundData>();
 
@@ -242,7 +251,19 @@ namespace StageLoader
                 Core.customStages.Add(data);
             }
 
+            if (Core.messageType != 2)
+                Core.messageType = 0;
+            Application.logMessageReceived -= OnLog;
             Destroy(gameObject);
+        }
+
+        void OnLog(string message, string stacktrace, LogType type)
+        {
+            if (type == LogType.Exception)
+            {
+                Core.messageType = 2;
+                Core.guiMsg = $"Error loading stage\n{currStage}\n{currStageType}\n\n{message}\n\n{stacktrace}";
+            }
         }
 
         IEnumerator TextureDownload(string url)
