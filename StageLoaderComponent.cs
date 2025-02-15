@@ -27,7 +27,7 @@ namespace StageLoader
             Core.customStages.Clear();
 
             if (!Directory.Exists($"{Application.streamingAssetsPath}/Stages"))
-                yield break;
+                Directory.CreateDirectory($"{Application.streamingAssetsPath}/Stages");
 
             string[] stages = Directory.GetDirectories($"{Application.streamingAssetsPath}/Stages");
             foreach (string _stageName in stages)
@@ -232,12 +232,15 @@ namespace StageLoader
                         prefab.SetActive(false);
                         GameObject.DontDestroyOnLoad(prefab);
 
-                        ParticleSystem particles = prefab.GetComponent<ParticleSystem>();
-                        int count = particles.textureSheetAnimation.spriteCount;
-                        for (int i = 0; i < count; i++)
-                            particles.textureSheetAnimation.RemoveSprite(0);
-                        foreach (Sprite cloud in clouds)
-                            particles.textureSheetAnimation.AddSprite(cloud);
+                        if (clouds.Count > 0)
+                        {
+                            ParticleSystem particles = prefab.GetComponent<ParticleSystem>();
+                            int count = particles.textureSheetAnimation.spriteCount;
+                            for (int i = 0; i < count; i++)
+                                particles.textureSheetAnimation.RemoveSprite(0);
+                            foreach (Sprite cloud in clouds)
+                                particles.textureSheetAnimation.AddSprite(cloud);
+                        }
 
                         skydata.name = Path.GetFileName(skyName);
                         skydata.SkyColor = new Color(json.SkyColor[0] / 255f, json.SkyColor[1] / 255f, json.SkyColor[2] / 255f);
