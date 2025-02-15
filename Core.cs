@@ -5,7 +5,7 @@ using System.Reflection;
 using SMBZG.CharacterSelect;
 using UnityEngine.UI;
 
-[assembly: MelonInfo(typeof(StageLoader.Core), "StageLoader", "1.0.1", "Headshotnoby/headshot2017", null)]
+[assembly: MelonInfo(typeof(StageLoader.Core), "StageLoader", "1.0.2", "Headshotnoby/headshot2017", null)]
 [assembly: MelonGame("Jonathan Miller aka Zethros", "SMBZ-G")]
 
 namespace StageLoader
