@@ -302,7 +302,9 @@ namespace StageLoader
         {
             private static bool Prefix(BattleBackgroundManager __instance, StageData stage, int? battleBackgroundIndex = null)
             {
-                if (CharacterSelectScript.ins.SelectedStage != 0)
+                bool isArcade = (bool)typeof(GC).GetProperty("IsInArcadeMode", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(GC.ins);
+
+                if (isArcade || CharacterSelectScript.ins.SelectedStage != 0)
                     return true;
 
                 FieldInfo ActiveStage = typeof(BattleBackgroundManager).GetField("ActiveStage", BindingFlags.Instance | BindingFlags.NonPublic);
