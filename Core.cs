@@ -5,7 +5,7 @@ using System.Reflection;
 using SMBZG.CharacterSelect;
 using UnityEngine.UI;
 
-[assembly: MelonInfo(typeof(StageLoader.Core), "StageLoader", "1.0.3", "Headshotnoby/headshot2017", null)]
+[assembly: MelonInfo(typeof(StageLoader.Core), "StageLoader", "1.0.4", "Headshotnoby/headshot2017", null)]
 [assembly: MelonGame("Jonathan Miller aka Zethros", "SMBZ-G")]
 
 namespace StageLoader
@@ -57,7 +57,7 @@ namespace StageLoader
 
         public override void OnSceneWasInitialized(int buildIndex, string sceneName)
         {
-            if (buildIndex == 6)
+            if (buildIndex == 7)
                 LoadCustomStageUI();
         }
 
@@ -105,7 +105,7 @@ namespace StageLoader
             GameObject CustomStageListObj = new GameObject("Custom Stage List");
             GameObject CustomStageListTextObj = new GameObject("Custom Stage List Text");
             GameObject CustomStageListArrowObj = new GameObject("Custom Stage List Arrow");
-            GameObject CustomStageListTemplate = GameObject.Instantiate(CharacterSelectScript.ins.Section_CharacterSelect.transform.GetChild(2).GetChild(2).gameObject);
+            GameObject CustomStageListTemplate = GameObject.Instantiate(CharacterSelectScript.ins.Section_BattleSettings.transform.GetChild(1).GetChild(1).GetChild(1).GetChild(2).gameObject);
 
             GameObject CustomStageConfirmObj = new GameObject("Custom Stage Confirm");
             GameObject CustomStageConfirmTextObj = new GameObject("Custom Stage Confirm Text");
@@ -116,7 +116,7 @@ namespace StageLoader
 
             // Part 2: Children setup
             CustomStageRoot.transform.parent = root.transform;
-            CustomStageRoot.transform.localPosition = new Vector3(0, -400);
+            CustomStageRoot.transform.localPosition = new Vector3(-50, -400);
             CustomStageRoot.transform.localScale = Vector3.one;
 
             CustomStageLabelObj.transform.parent = CustomStageRoot.transform;
@@ -245,7 +245,8 @@ namespace StageLoader
 
         void OnCustomStageGo()
         {
-            CharacterSelectScript.ins.SelectedStage = 0;
+            BattleCache.StageEnum? stage = 0;
+            typeof(CharacterSelectScript).GetField("SelectedStage", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(CharacterSelectScript.ins, stage);
             CharacterSelectScript.ins.OnSubmit();
         }
 
@@ -303,8 +304,9 @@ namespace StageLoader
             private static bool Prefix(BattleBackgroundManager __instance, StageData stage, int? battleBackgroundIndex = null)
             {
                 bool isArcade = (bool)typeof(GC).GetProperty("IsInArcadeMode", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(GC.ins);
+                BattleCache.StageEnum? SelectedStage = (BattleCache.StageEnum?)typeof(CharacterSelectScript).GetField("SelectedStage", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(CharacterSelectScript.ins);
 
-                if (isArcade || CharacterSelectScript.ins.SelectedStage != 0)
+                if (isArcade || (SelectedStage.HasValue && SelectedStage.Value != 0))
                     return true;
 
                 FieldInfo ActiveStage = typeof(BattleBackgroundManager).GetField("ActiveStage", BindingFlags.Instance | BindingFlags.NonPublic);
