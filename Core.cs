@@ -5,7 +5,7 @@ using System.Reflection;
 using SMBZG.CharacterSelect;
 using UnityEngine.UI;
 
-[assembly: MelonInfo(typeof(StageLoader.Core), "StageLoader", "1.0.4", "Headshotnoby/headshot2017", null)]
+[assembly: MelonInfo(typeof(StageLoader.Core), "StageLoader", "1.0.5", "Headshotnoby/headshot2017", null)]
 [assembly: MelonGame("Jonathan Miller aka Zethros", "SMBZ-G")]
 
 namespace StageLoader
@@ -304,9 +304,10 @@ namespace StageLoader
             private static bool Prefix(BattleBackgroundManager __instance, StageData stage, int? battleBackgroundIndex = null)
             {
                 bool isArcade = (bool)typeof(GC).GetProperty("IsInArcadeMode", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(GC.ins);
-                BattleCache.StageEnum? SelectedStage = (BattleCache.StageEnum?)typeof(CharacterSelectScript).GetField("SelectedStage", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(CharacterSelectScript.ins);
+                SMBZG.BattleSettings BattleSettings = (SMBZG.BattleSettings)typeof(GC).GetField("BattleSetting", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(GC.ins);
+                BattleCache.StageEnum? SelectedStage = BattleSettings.Stage;
 
-                if (isArcade || (SelectedStage.HasValue && SelectedStage.Value != 0))
+                if (isArcade || SelectedStage != 0)
                     return true;
 
                 FieldInfo ActiveStage = typeof(BattleBackgroundManager).GetField("ActiveStage", BindingFlags.Instance | BindingFlags.NonPublic);
