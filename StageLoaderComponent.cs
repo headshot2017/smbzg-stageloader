@@ -30,6 +30,7 @@ namespace StageLoader
                 Directory.CreateDirectory($"{Application.streamingAssetsPath}/Stages");
 
             string[] stages = Directory.GetDirectories($"{Application.streamingAssetsPath}/Stages");
+
             foreach (string _stageName in stages)
             {
                 string stageName = _stageName.Replace('\\', '/');
@@ -43,7 +44,9 @@ namespace StageLoader
 
                 currStage = data.name;
                 Melon<Core>.Logger.Msg($"Loading custom stage: {currStage}");
+
                 Core.guiMsg = $"Loading custom stage:\n{currStage}";
+                Core.guiTotalStages = $"{Core.customStages.Count}/{stages.Length} ({Core.customStages.Count / (float)stages.Length * 100f}%) stages loaded";
 
                 // Load global stage music, if available
                 UnityWebRequest www;
@@ -51,6 +54,7 @@ namespace StageLoader
                 AudioClip GlobalStartMusic = null;
                 if (File.Exists($"{stageName}/loop.ogg"))
                 {
+                    Core.guiMsg = $"Loading custom stage:\n{currStage}\n\nloop.ogg";
                     www = UnityWebRequestMultimedia.GetAudioClip($"file:///{stageName}/loop.ogg", AudioType.OGGVORBIS);
                     www.SendWebRequest();
                     while (!www.isDone) ;
@@ -59,6 +63,7 @@ namespace StageLoader
 
                     if (File.Exists($"{stageName}/start.ogg"))
                     {
+                        Core.guiMsg = $"Loading custom stage:\n{currStage}\n\nstart.ogg";
                         www = UnityWebRequestMultimedia.GetAudioClip($"file:///{stageName}/start.ogg", AudioType.OGGVORBIS);
                         www.SendWebRequest();
                         while (!www.isDone) ;
@@ -81,6 +86,7 @@ namespace StageLoader
 
                         BackgroundDataJson json = JsonUtility.FromJson<BackgroundDataJson>(File.ReadAllText($"{bgName}/background.json"));
 
+                        Core.guiMsg = $"Loading custom stage:\n{currStage}\n\n{currStageType}\nbackgroundback.png";
                         yield return TextureDownload(Uri.EscapeUriString($"file:///{bgName}/backgroundback.png"));
                         if (!json.BackgroundBack_TextureFilter)
                             texture.filterMode = FilterMode.Point;
@@ -90,6 +96,7 @@ namespace StageLoader
                         List<Sprite> backgroundAnim = new List<Sprite>();
                         for (int i = 0; File.Exists($"{bgName}/background_{i}.png"); i++)
                         {
+                            Core.guiMsg = $"Loading custom stage:\n{currStage}\n\n{currStageType}\nbackground_{i}.png";
                             yield return TextureDownload(Uri.EscapeUriString($"file:///{bgName}/background_{i}.png"));
                             if (!json.Background_TextureFilter)
                                 texture.filterMode = FilterMode.Point;
@@ -98,6 +105,7 @@ namespace StageLoader
                             backgroundAnim.Add(background);
                         }
 
+                        Core.guiMsg = $"Loading custom stage:\n{currStage}\n\n{currStageType}\nground.png";
                         yield return TextureDownload(Uri.EscapeUriString($"file:///{bgName}/ground.png"));
                         if (!json.Ground_TextureFilter)
                             texture.filterMode = FilterMode.Point;
@@ -107,6 +115,7 @@ namespace StageLoader
                         Sprite groundBlurred = ground;
                         if (File.Exists($"{bgName}/ground_blurred.png"))
                         {
+                            Core.guiMsg = $"Loading custom stage:\n{currStage}\n\n{currStageType}\nground_blurred.png";
                             yield return TextureDownload(Uri.EscapeUriString($"file:///{bgName}/ground_blurred.png"));
                             if (!json.Ground_TextureFilter)
                                 texture.filterMode = FilterMode.Point;
@@ -166,6 +175,7 @@ namespace StageLoader
                         // If it doesn't exist, try global stage music
                         if (File.Exists($"{bgName}/loop.ogg"))
                         {
+                            Core.guiMsg = $"Loading custom stage:\n{currStage}\n\n{currStageType}\nloop.ogg";
                             www = UnityWebRequestMultimedia.GetAudioClip($"file:///{bgName}/loop.ogg", AudioType.OGGVORBIS);
                             www.SendWebRequest();
                             while (!www.isDone) ;
@@ -174,6 +184,7 @@ namespace StageLoader
 
                             if (File.Exists($"{bgName}/start.ogg"))
                             {
+                                Core.guiMsg = $"Loading custom stage:\n{currStage}\n\n{currStageType}\nstart.ogg";
                                 www = UnityWebRequestMultimedia.GetAudioClip($"file:///{bgName}/start.ogg", AudioType.OGGVORBIS);
                                 www.SendWebRequest();
                                 while (!www.isDone) ;
@@ -213,6 +224,7 @@ namespace StageLoader
                         List<Sprite> clouds = new List<Sprite>();
                         for (int i = 0; File.Exists($"{skyName}/cloud_{i}.png"); i++)
                         {
+                            Core.guiMsg = $"Loading custom stage:\n{currStage}\n\n{currStageType}\ncloud_{i}.png";
                             yield return TextureDownload(Uri.EscapeUriString($"file:///{skyName}/cloud_{i}.png"));
                             if (!json.CloudSprite_Filter)
                                 texture.filterMode = FilterMode.Point;
@@ -251,7 +263,8 @@ namespace StageLoader
                     }
                 }
 
-                Core.customStages.Add(data);
+                if (data.BattleBackgroundDataList.Count > 0 && data.SkyDataList.Count > 0)
+                    Core.customStages.Add(data);
             }
 
             if (Core.messageType != 2)
@@ -269,6 +282,12 @@ namespace StageLoader
                 Core.stageDropdown.AddOptions(stageNames);
                 Core.stageDropdown.value = 0;
             }
+
+            List<BattleCache.StageEnum> StageList = Core.OriginalStageArray.ToList();
+            for (int i = 0; i < Core.customStages.Count; i++)
+                StageList.Add((BattleCache.StageEnum)(i + 100));
+            BattleCache.StageArray = StageList.ToArray();
+
 
             Destroy(gameObject);
         }

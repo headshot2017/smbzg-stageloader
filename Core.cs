@@ -16,6 +16,9 @@ namespace StageLoader
         public static Dropdown stageDropdown;
         public static int messageType;
         public static string guiMsg;
+        public static string guiTotalStages;
+
+        public static BattleCache.StageEnum[] OriginalStageArray;
 
         public override void OnInitializeMelon()
         {
@@ -26,6 +29,7 @@ namespace StageLoader
 
         public override void OnLateInitializeMelon()
         {
+            OriginalStageArray = BattleCache.StageArray;
             LoadCustomStages();
         }
 
@@ -38,7 +42,7 @@ namespace StageLoader
                 case 1:
                     GUI.BeginGroup(new Rect(Screen.width / 2 - w/2, Screen.height / 2 - h/2, w, h));
                     GUI.Box(new Rect(0, 0, w, h), "StageLoader");
-                    GUI.Label(new Rect(32, 32, w - 64, h - 64), guiMsg);
+                    GUI.Label(new Rect(32, 32, w - 64, h - 64), $"{guiMsg}\n\n\n{guiTotalStages}");
                     GUI.EndGroup();
                     break;
 
@@ -253,6 +257,18 @@ namespace StageLoader
         void OnCustomStageRefresh()
         {
             LoadCustomStages();
+        }
+
+        [HarmonyPatch(typeof(BattleCache), "Stage_GetData", new Type[] { typeof(BattleCache.StageEnum) })]
+        private static class GetStageDataPatch
+        {
+            private static bool Prefix(ref StageData __result, BattleCache.StageEnum stage)
+            {
+                int stageInt = (int)stage;
+                if (stageInt < 100) return true;
+                __result = customStages[stageInt - 100];
+                return false;
+            }
         }
 
         [HarmonyPatch(typeof(BattleBackgroundManager), "SetSkyBackground", new Type[] { typeof(SkyBackgroundData) })]
