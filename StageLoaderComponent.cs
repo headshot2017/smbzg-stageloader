@@ -260,7 +260,7 @@ namespace StageLoader
                     }
                 }
 
-                if (data.BattleBackgroundDataList.Count > 0 && data.SkyDataList.Count > 0)
+                if (data.BattleBackgroundDataList.Count > 0)
                     Core.customStages.Add(data);
             }
 
