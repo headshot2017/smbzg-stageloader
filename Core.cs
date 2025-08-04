@@ -5,7 +5,7 @@ using System.Reflection;
 using SMBZG.CharacterSelect;
 using UnityEngine.UI;
 
-[assembly: MelonInfo(typeof(StageLoader.Core), "StageLoader", "1.0.6", "Headshotnoby/headshot2017", null)]
+[assembly: MelonInfo(typeof(StageLoader.Core), "StageLoader", "1.1", "Headshotnoby/headshot2017", null)]
 [assembly: MelonGame("Jonathan Miller aka Zethros", "SMBZ-G")]
 
 namespace StageLoader
@@ -40,7 +40,7 @@ namespace StageLoader
             switch (messageType)
             {
                 case 1:
-                    GUI.BeginGroup(new Rect(Screen.width / 2 - w/2, Screen.height / 2 - h/2, w, h));
+                    GUI.BeginGroup(new Rect(Screen.width / 2 - w / 2, Screen.height / 2 - h / 2, w, h));
                     GUI.Box(new Rect(0, 0, w, h), "StageLoader");
                     GUI.Label(new Rect(32, 32, w - 64, h - 64), $"{guiMsg}\n\n\n{guiTotalStages}");
                     GUI.EndGroup();
@@ -314,10 +314,10 @@ namespace StageLoader
             }
         }
 
-        [HarmonyPatch(typeof(BattleBackgroundManager), "SetupStageData", new Type[] { typeof(StageData), typeof(int?) })]
+        [HarmonyPatch(typeof(BattleBackgroundManager), "SetupStageData", new Type[] { typeof(StageData), typeof(BattleMusicData), typeof(int?) })]
         private static class SetupStageDataPatch
         {
-            private static bool Prefix(BattleBackgroundManager __instance, StageData stage, int? battleBackgroundIndex = null)
+            private static bool Prefix(BattleBackgroundManager __instance, StageData stage, BattleMusicData song, int? battleBackgroundIndex = null)
             {
                 bool isArcade = (bool)typeof(GC).GetProperty("IsInArcadeMode", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(GC.ins);
                 SMBZG.BattleSettings BattleSettings = (SMBZG.BattleSettings)typeof(GC).GetField("BattleSetting", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(GC.ins);
@@ -327,12 +327,14 @@ namespace StageLoader
                     return true;
 
                 FieldInfo ActiveStage = typeof(BattleBackgroundManager).GetField("ActiveStage", BindingFlags.Instance | BindingFlags.NonPublic);
+                FieldInfo ActiveSong = typeof(BattleBackgroundManager).GetField("ActiveSong", BindingFlags.Instance | BindingFlags.NonPublic);
                 MethodInfo SetBattleBackground = typeof(BattleBackgroundManager).GetMethod("SetBattleBackground", BindingFlags.Instance | BindingFlags.NonPublic, null, new[] { typeof(BattleBackgroundData) }, null);
 
                 Melon<Core>.Logger.Msg($"Playing custom stage: {customStages[stageDropdown.value].name}");
 
                 StageData customStage = customStages[stageDropdown.value];
                 ActiveStage.SetValue(__instance, customStage);
+                ActiveSong.SetValue(__instance, song);
                 //BattleBackgroundData battleBackground = ((!battleBackgroundIndex.HasValue) ? stage.BattleBackgroundDataList.GetRandom() : stage.BattleBackgroundDataList[battleBackgroundIndex.Value]);
                 //BattleBackgroundData battleBackground = customStage.BattleBackgroundDataList.GetRandom();
                 BattleBackgroundData battleBackground = customStage.BattleBackgroundDataList[0];
