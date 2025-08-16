@@ -83,12 +83,16 @@ namespace StageLoader
 
                         BackgroundDataJson json = JsonUtility.FromJson<BackgroundDataJson>(File.ReadAllText($"{bgName}/background.json"));
 
-                        Core.guiMsg = $"Loading custom stage:\n{currStage}\n\n{currStageType}\nbackgroundback.png";
-                        yield return TextureDownload(Uri.EscapeUriString($"file:///{bgName}/backgroundback.png"));
-                        if (!json.BackgroundBack_TextureFilter)
-                            texture.filterMode = FilterMode.Point;
-                        Sprite backgroundBack = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(.5f, 0), json.BackgroundBack_PixelsPerUnit);
-                        backgroundBack.name = "backgroundback.png";
+                        Sprite backgroundBack = null;
+                        if (File.Exists($"{bgName}/backgroundback.png"))
+                        {
+                            Core.guiMsg = $"Loading custom stage:\n{currStage}\n\n{currStageType}\nbackgroundback.png";
+                            yield return TextureDownload(Uri.EscapeUriString($"file:///{bgName}/backgroundback.png"));
+                            if (!json.BackgroundBack_TextureFilter)
+                                texture.filterMode = FilterMode.Point;
+                            backgroundBack = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(.5f, 0), json.BackgroundBack_PixelsPerUnit);
+                            backgroundBack.name = "backgroundback.png";
+                        }
 
                         List<Sprite> backgroundAnim = new List<Sprite>();
                         for (int i = 0; File.Exists($"{bgName}/background_{i}.png"); i++)
@@ -102,12 +106,16 @@ namespace StageLoader
                             backgroundAnim.Add(background);
                         }
 
-                        Core.guiMsg = $"Loading custom stage:\n{currStage}\n\n{currStageType}\nground.png";
-                        yield return TextureDownload(Uri.EscapeUriString($"file:///{bgName}/ground.png"));
-                        if (!json.Ground_TextureFilter)
-                            texture.filterMode = FilterMode.Point;
-                        Sprite ground = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(.5f, 0), json.Ground_PixelsPerUnit);
-                        ground.name = "ground.png";
+                        Sprite ground = null;
+                        if (File.Exists($"{bgName}/ground.png"))
+                        {
+                            Core.guiMsg = $"Loading custom stage:\n{currStage}\n\n{currStageType}\nground.png";
+                            yield return TextureDownload(Uri.EscapeUriString($"file:///{bgName}/ground.png"));
+                            if (!json.Ground_TextureFilter)
+                                texture.filterMode = FilterMode.Point;
+                            ground = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(.5f, 0), json.Ground_PixelsPerUnit);
+                            ground.name = "ground.png";
+                        }
 
                         Sprite groundBlurred = ground;
                         if (File.Exists($"{bgName}/ground_blurred.png"))
