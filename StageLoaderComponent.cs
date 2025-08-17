@@ -144,15 +144,19 @@ namespace StageLoader
                         bgdata.GroundSprite_Blurred = groundBlurred;
                         bgdata.GroundPosition = new Vector2(json.Ground_Position[0], json.Ground_Position[1]);
                         bgdata.MovementRushTransitionScript = original.MovementRushTransitionScript;
-                        bgdata.MovementRushClosingCinematic = original.MovementRushClosingCinematic;
                         bgdata.KoopaBros_BackgroundSpriteLayer = original.KoopaBros_BackgroundSpriteLayer;
+
+                        var CustomClosingCinematic = ScriptableObject.CreateInstance<SMBZG.MovementRush.Cinematic.MRC_Custom_Closing>();
+                        CustomClosingCinematic.name = original.MovementRushClosingCinematic.name;
+                        CustomClosingCinematic.hideFlags = hideFlags;
+                        CustomClosingCinematic.Prefab_SimpleCharacter = ((SMBZG.MovementRush.Cinematic.MRC_Basic_Closing)original.MovementRushClosingCinematic).Prefab_SimpleCharacter;
+                        bgdata.MovementRushClosingCinematic = CustomClosingCinematic;
 
                         if (json.Crater_Mode == 0)
                             bgdata.Prefab_Crater = null;
                         else
                         {
                             bgdata.Prefab_Crater = original.Prefab_Crater;
-                            /*
                             if (File.Exists($"{bgName}/crater.png"))
                             {
                                 GameObject customCrater = GameObject.Instantiate(original.Prefab_Crater);
@@ -171,7 +175,6 @@ namespace StageLoader
 
                                 bgdata.Prefab_Crater = customCrater;
                             }
-                            */
                         }
 
 
