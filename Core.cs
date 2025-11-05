@@ -5,7 +5,7 @@ using System.Reflection;
 using SMBZG.CharacterSelect;
 using UnityEngine.UI;
 
-[assembly: MelonInfo(typeof(StageLoader.Core), "StageLoader", "1.1.2", "Headshotnoby/headshot2017", null)]
+[assembly: MelonInfo(typeof(StageLoader.Core), "StageLoader", "1.2", "Headshotnoby/headshot2017", null)]
 [assembly: MelonGame("Jonathan Miller aka Zethros", "SMBZ-G")]
 
 namespace StageLoader
@@ -98,6 +98,35 @@ namespace StageLoader
 
             // Setup the UI
 
+            // Find a dropdown prefab
+            // Go through each children until it's found
+            GameObject dropdownTemplate = null;
+            Stack<Transform> objs = new Stack<Transform>();
+            objs.Push(CharacterSelectScript.ins.Section_BattleSettings.transform);
+            while (objs.Count > 0)
+            {
+                Transform obj = objs.Pop();
+
+                if (obj.GetComponent<Dropdown>() != null && obj.Find("Template") != null)
+                {
+                    dropdownTemplate = obj.Find("Template").gameObject;
+                    objs.Clear();
+                    break;
+                }
+
+                for (int i = 0; i < obj.transform.childCount; i++)
+                    objs.Push(obj.GetChild(i));
+            }
+
+            if (!dropdownTemplate)
+            {
+                LoggerInstance.Msg($"================ WARNING ================");
+                LoggerInstance.Msg($"UI DROPDOWN TEMPLATE NOT FOUND");
+                LoggerInstance.Msg($"Custom stage selector will NOT be visible");
+                LoggerInstance.Msg($"=========================================");
+                return;
+            }
+
             // Part 1: GameObjects
             GameObject root = CharacterSelectScript.ins.Section_StageSelect;
             GameObject CustomStageRoot = new GameObject("Custom Stage UI");
@@ -109,7 +138,7 @@ namespace StageLoader
             GameObject CustomStageListObj = new GameObject("Custom Stage List");
             GameObject CustomStageListTextObj = new GameObject("Custom Stage List Text");
             GameObject CustomStageListArrowObj = new GameObject("Custom Stage List Arrow");
-            GameObject CustomStageListTemplate = GameObject.Instantiate(CharacterSelectScript.ins.Section_BattleSettings.transform.GetChild(1).GetChild(1).GetChild(1).GetChild(2).gameObject);
+            GameObject CustomStageListTemplate = GameObject.Instantiate(dropdownTemplate);
 
             GameObject CustomStageConfirmObj = new GameObject("Custom Stage Confirm");
             GameObject CustomStageConfirmTextObj = new GameObject("Custom Stage Confirm Text");
