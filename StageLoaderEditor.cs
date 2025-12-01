@@ -61,11 +61,8 @@ namespace StageLoader
                 (BattleBackgroundData)typeof(BattleBackgroundManager).GetField("ActiveBattleBackgroundData", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(BackgroundManager);
             lastBg = ActiveBattleBackgroundData;
 
-            if (!currentSky)
-            {
-                currentSky = (ActiveStage.SkyDataList.Count > 0) ? ActiveStage.SkyDataList[0] : null;
-                ResetSky();
-            }
+            currentSky = (ActiveStage.SkyDataList.Count > 0) ? ActiveStage.SkyDataList[0] : null;
+            ResetSky();
 
             changesMade = false;
 
