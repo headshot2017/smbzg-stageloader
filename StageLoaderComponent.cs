@@ -1,7 +1,8 @@
-﻿using UnityEngine;
+﻿using MelonLoader;
 using System.Collections;
+using System.Xml.Linq;
+using UnityEngine;
 using UnityEngine.Networking;
-using MelonLoader;
 
 namespace StageLoader
 {
@@ -14,6 +15,147 @@ namespace StageLoader
         void Start()
         {
             StartCoroutine(LoadStages());
+        }
+
+        IEnumerator LoadBackgroundData(StageData data, string bgName, AudioClip GlobalStartMusic, AudioClip GlobalLoopMusic)
+        {
+            UnityWebRequest www;
+
+            BattleBackgroundData bgdata = ScriptableObject.CreateInstance<BattleBackgroundData>();
+            BattleBackgroundData original = BattleCache.ins.Stage_MarioCircuit.BattleBackgroundDataList[0];
+
+            BackgroundDataJson json = JsonUtility.FromJson<BackgroundDataJson>(File.ReadAllText($"{bgName}/background.json"));
+
+            Sprite backgroundBack = null;
+            if (File.Exists($"{bgName}/backgroundback.png"))
+            {
+                Core.guiMsg = $"Loading custom stage:\n{currStage}\n\n{currStageType}\nbackgroundback.png";
+                yield return TextureDownload(Uri.EscapeUriString($"file:///{bgName}/backgroundback.png"));
+                if (!json.BackgroundBack_TextureFilter)
+                    texture.filterMode = FilterMode.Point;
+                backgroundBack = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(.5f, 0), json.BackgroundBack_PixelsPerUnit);
+                backgroundBack.name = "backgroundback.png";
+            }
+
+            List<Sprite> backgroundAnim = new List<Sprite>();
+            for (int i = 0; File.Exists($"{bgName}/background_{i}.png"); i++)
+            {
+                Core.guiMsg = $"Loading custom stage:\n{currStage}\n\n{currStageType}\nbackground_{i}.png";
+                yield return TextureDownload(Uri.EscapeUriString($"file:///{bgName}/background_{i}.png"));
+                if (!json.Background_TextureFilter)
+                    texture.filterMode = FilterMode.Point;
+                Sprite background = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(.5f, 0), json.Background_PixelsPerUnit);
+                background.name = $"background_{i}.png";
+                backgroundAnim.Add(background);
+            }
+
+            Sprite ground = null;
+            if (File.Exists($"{bgName}/ground.png"))
+            {
+                Core.guiMsg = $"Loading custom stage:\n{currStage}\n\n{currStageType}\nground.png";
+                yield return TextureDownload(Uri.EscapeUriString($"file:///{bgName}/ground.png"));
+                if (!json.Ground_TextureFilter)
+                    texture.filterMode = FilterMode.Point;
+                ground = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(.5f, 0), json.Ground_PixelsPerUnit);
+                ground.name = "ground.png";
+            }
+
+            Sprite groundBlurred = ground;
+            if (File.Exists($"{bgName}/ground_blurred.png"))
+            {
+                Core.guiMsg = $"Loading custom stage:\n{currStage}\n\n{currStageType}\nground_blurred.png";
+                yield return TextureDownload(Uri.EscapeUriString($"file:///{bgName}/ground_blurred.png"));
+                if (!json.Ground_TextureFilter)
+                    texture.filterMode = FilterMode.Point;
+                groundBlurred = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(.5f, 0), json.Ground_PixelsPerUnit);
+                groundBlurred.name = "ground_blurred.png";
+            }
+
+            bgdata.name = Path.GetFileName(bgName);
+            bgdata.SkyColor = new Color(json.SkyColor[0] / 255f, json.SkyColor[1] / 255f, json.SkyColor[2] / 255f);
+            bgdata.BackgroundBack_Sprite = backgroundBack;
+            bgdata.BackgroundBack_Position = new Vector2(json.BackgroundBack_Position[0], json.BackgroundBack_Position[1]);
+            bgdata.BackgroundBack_ParralaxSpeedX = json.BackgroundBack_ParralaxSpeedX;
+            bgdata.BackgroundBack_ParralaxSpeedY = json.BackgroundBack_ParralaxSpeedY;
+            bgdata.BackgroundSprite = (backgroundAnim.Count > 0) ? backgroundAnim[0] : null;
+            bgdata.Background_SpriteList = backgroundAnim;
+            bgdata.Background_AnimationSpeed = json.Background_AnimationSpeed;
+            bgdata.BackgroundPosition = new Vector2(json.Background_Position[0], json.Background_Position[1]);
+            bgdata.ParralaxSpeedX = json.Background_ParralaxSpeedX;
+            bgdata.ParralaxSpeedY = json.Background_ParralaxSpeedY;
+            bgdata.GroundSprite = ground;
+            bgdata.GroundSprite_Blurred = groundBlurred;
+            bgdata.GroundPosition = new Vector2(json.Ground_Position[0], json.Ground_Position[1]);
+            bgdata.MovementRushTransitionScript = original.MovementRushTransitionScript;
+            bgdata.KoopaBros_BackgroundSpriteLayer = original.KoopaBros_BackgroundSpriteLayer;
+
+            var CustomClosingCinematic = ScriptableObject.CreateInstance<SMBZG.MovementRush.Cinematic.MRC_Custom_Closing>();
+            CustomClosingCinematic.name = original.MovementRushClosingCinematic.name;
+            CustomClosingCinematic.hideFlags = hideFlags;
+            CustomClosingCinematic.Prefab_SimpleCharacter = ((SMBZG.MovementRush.Cinematic.MRC_Basic_Closing)original.MovementRushClosingCinematic).Prefab_SimpleCharacter;
+            bgdata.MovementRushClosingCinematic = CustomClosingCinematic;
+
+            if (json.Crater_Mode == 0)
+                bgdata.Prefab_Crater = null;
+            else
+            {
+                bgdata.Prefab_Crater = original.Prefab_Crater;
+                if (File.Exists($"{bgName}/crater.png"))
+                {
+                    GameObject customCrater = GameObject.Instantiate(original.Prefab_Crater);
+                    customCrater.SetActive(false);
+                    customCrater.name = "Custom Crater";
+                    GameObject.DontDestroyOnLoad(customCrater);
+
+                    yield return TextureDownload(Uri.EscapeUriString($"file:///{bgName}/crater.png"));
+                    if (!json.CustomCrater_Filter)
+                        texture.filterMode = FilterMode.Point;
+                    Sprite crater = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(.5f, .5f), 30);
+                    crater.name = "crater.png";
+
+                    SpriteRenderer spriteRenderer = customCrater.transform.GetChild(0).gameObject.GetComponent<SpriteRenderer>();
+                    spriteRenderer.sprite = crater;
+
+                    bgdata.Prefab_Crater = customCrater;
+                }
+            }
+
+
+            // Load music.
+            // Try background-specific music first.
+            // If it doesn't exist, try global stage music
+            if (File.Exists($"{bgName}/loop.ogg"))
+            {
+                Core.guiMsg = $"Loading custom stage:\n{currStage}\n\n{currStageType}\nloop.ogg";
+                www = UnityWebRequestMultimedia.GetAudioClip($"file:///{bgName}/loop.ogg", AudioType.OGGVORBIS);
+                www.SendWebRequest();
+                while (!www.isDone) ;
+
+                bgdata.BackgroundMusic = DownloadHandlerAudioClip.GetContent(www);
+
+                if (File.Exists($"{bgName}/start.ogg"))
+                {
+                    Core.guiMsg = $"Loading custom stage:\n{currStage}\n\n{currStageType}\nstart.ogg";
+                    www = UnityWebRequestMultimedia.GetAudioClip($"file:///{bgName}/start.ogg", AudioType.OGGVORBIS);
+                    www.SendWebRequest();
+                    while (!www.isDone) ;
+
+                    bgdata.StartupBackgroundMusic = DownloadHandlerAudioClip.GetContent(www);
+                }
+            }
+            else if (GlobalLoopMusic != null)
+            {
+                bgdata.BackgroundMusic = GlobalLoopMusic;
+
+                if (GlobalStartMusic != null)
+                {
+                    bgdata.StartupBackgroundMusic = GlobalStartMusic;
+                }
+            }
+
+            data.BattleBackgroundDataList.Add(bgdata);
+            if (json.Disable_AirMovementRush)
+                data.AirRushExceptionIndexList.Add(data.BattleBackgroundDataList.Count - 1);
         }
 
         IEnumerator LoadStages()
@@ -72,147 +214,20 @@ namespace StageLoader
                 // Load stage backgrounds
                 if (Directory.Exists($"{_stageName}/backgrounds"))
                 {
+                    if (Directory.Exists($"{_stageName}/backgrounds/default"))
+                    {
+                        currStageType = $"Background \"default\"";
+                        yield return LoadBackgroundData(data, $"{_stageName}/backgrounds/default", GlobalStartMusic, GlobalLoopMusic);
+                    }
+
                     string[] backgrounds = Directory.GetDirectories($"{_stageName}/backgrounds");
                     foreach (string _bgName in backgrounds)
                     {
                         string bgName = _bgName.Replace('\\', '/');
+                        if (Path.GetFileName(bgName).ToLower() == "default") continue;
+
                         currStageType = $"Background \"{Path.GetFileName(bgName)}\"";
-
-                        BattleBackgroundData bgdata = ScriptableObject.CreateInstance<BattleBackgroundData>();
-                        BattleBackgroundData original = BattleCache.ins.Stage_MarioCircuit.BattleBackgroundDataList[0];
-
-                        BackgroundDataJson json = JsonUtility.FromJson<BackgroundDataJson>(File.ReadAllText($"{bgName}/background.json"));
-
-                        Sprite backgroundBack = null;
-                        if (File.Exists($"{bgName}/backgroundback.png"))
-                        {
-                            Core.guiMsg = $"Loading custom stage:\n{currStage}\n\n{currStageType}\nbackgroundback.png";
-                            yield return TextureDownload(Uri.EscapeUriString($"file:///{bgName}/backgroundback.png"));
-                            if (!json.BackgroundBack_TextureFilter)
-                                texture.filterMode = FilterMode.Point;
-                            backgroundBack = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(.5f, 0), json.BackgroundBack_PixelsPerUnit);
-                            backgroundBack.name = "backgroundback.png";
-                        }
-
-                        List<Sprite> backgroundAnim = new List<Sprite>();
-                        for (int i = 0; File.Exists($"{bgName}/background_{i}.png"); i++)
-                        {
-                            Core.guiMsg = $"Loading custom stage:\n{currStage}\n\n{currStageType}\nbackground_{i}.png";
-                            yield return TextureDownload(Uri.EscapeUriString($"file:///{bgName}/background_{i}.png"));
-                            if (!json.Background_TextureFilter)
-                                texture.filterMode = FilterMode.Point;
-                            Sprite background = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(.5f, 0), json.Background_PixelsPerUnit);
-                            background.name = $"background_{i}.png";
-                            backgroundAnim.Add(background);
-                        }
-
-                        Sprite ground = null;
-                        if (File.Exists($"{bgName}/ground.png"))
-                        {
-                            Core.guiMsg = $"Loading custom stage:\n{currStage}\n\n{currStageType}\nground.png";
-                            yield return TextureDownload(Uri.EscapeUriString($"file:///{bgName}/ground.png"));
-                            if (!json.Ground_TextureFilter)
-                                texture.filterMode = FilterMode.Point;
-                            ground = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(.5f, 0), json.Ground_PixelsPerUnit);
-                            ground.name = "ground.png";
-                        }
-
-                        Sprite groundBlurred = ground;
-                        if (File.Exists($"{bgName}/ground_blurred.png"))
-                        {
-                            Core.guiMsg = $"Loading custom stage:\n{currStage}\n\n{currStageType}\nground_blurred.png";
-                            yield return TextureDownload(Uri.EscapeUriString($"file:///{bgName}/ground_blurred.png"));
-                            if (!json.Ground_TextureFilter)
-                                texture.filterMode = FilterMode.Point;
-                            groundBlurred = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(.5f, 0), json.Ground_PixelsPerUnit);
-                            groundBlurred.name = "ground_blurred.png";
-                        }
-
-                        bgdata.name = Path.GetFileName(bgName);
-                        bgdata.SkyColor = new Color(json.SkyColor[0] / 255f, json.SkyColor[1] / 255f, json.SkyColor[2] / 255f);
-                        bgdata.BackgroundBack_Sprite = backgroundBack;
-                        bgdata.BackgroundBack_Position = new Vector2(json.BackgroundBack_Position[0], json.BackgroundBack_Position[1]);
-                        bgdata.BackgroundBack_ParralaxSpeedX = json.BackgroundBack_ParralaxSpeedX;
-                        bgdata.BackgroundBack_ParralaxSpeedY = json.BackgroundBack_ParralaxSpeedY;
-                        bgdata.BackgroundSprite = (backgroundAnim.Count > 0) ? backgroundAnim[0] : null;
-                        bgdata.Background_SpriteList = backgroundAnim;
-                        bgdata.Background_AnimationSpeed = json.Background_AnimationSpeed;
-                        bgdata.BackgroundPosition = new Vector2(json.Background_Position[0], json.Background_Position[1]);
-                        bgdata.ParralaxSpeedX = json.Background_ParralaxSpeedX;
-                        bgdata.ParralaxSpeedY = json.Background_ParralaxSpeedY;
-                        bgdata.GroundSprite = ground;
-                        bgdata.GroundSprite_Blurred = groundBlurred;
-                        bgdata.GroundPosition = new Vector2(json.Ground_Position[0], json.Ground_Position[1]);
-                        bgdata.MovementRushTransitionScript = original.MovementRushTransitionScript;
-                        bgdata.KoopaBros_BackgroundSpriteLayer = original.KoopaBros_BackgroundSpriteLayer;
-
-                        var CustomClosingCinematic = ScriptableObject.CreateInstance<SMBZG.MovementRush.Cinematic.MRC_Custom_Closing>();
-                        CustomClosingCinematic.name = original.MovementRushClosingCinematic.name;
-                        CustomClosingCinematic.hideFlags = hideFlags;
-                        CustomClosingCinematic.Prefab_SimpleCharacter = ((SMBZG.MovementRush.Cinematic.MRC_Basic_Closing)original.MovementRushClosingCinematic).Prefab_SimpleCharacter;
-                        bgdata.MovementRushClosingCinematic = CustomClosingCinematic;
-
-                        if (json.Crater_Mode == 0)
-                            bgdata.Prefab_Crater = null;
-                        else
-                        {
-                            bgdata.Prefab_Crater = original.Prefab_Crater;
-                            if (File.Exists($"{bgName}/crater.png"))
-                            {
-                                GameObject customCrater = GameObject.Instantiate(original.Prefab_Crater);
-                                customCrater.SetActive(false);
-                                customCrater.name = "Custom Crater";
-                                GameObject.DontDestroyOnLoad(customCrater);
-
-                                yield return TextureDownload(Uri.EscapeUriString($"file:///{bgName}/crater.png"));
-                                if (!json.CustomCrater_Filter)
-                                    texture.filterMode = FilterMode.Point;
-                                Sprite crater = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(.5f, .5f), 30);
-                                crater.name = "crater.png";
-
-                                SpriteRenderer spriteRenderer = customCrater.transform.GetChild(0).gameObject.GetComponent<SpriteRenderer>();
-                                spriteRenderer.sprite = crater;
-
-                                bgdata.Prefab_Crater = customCrater;
-                            }
-                        }
-
-
-                        // Load music.
-                        // Try background-specific music first.
-                        // If it doesn't exist, try global stage music
-                        if (File.Exists($"{bgName}/loop.ogg"))
-                        {
-                            Core.guiMsg = $"Loading custom stage:\n{currStage}\n\n{currStageType}\nloop.ogg";
-                            www = UnityWebRequestMultimedia.GetAudioClip($"file:///{bgName}/loop.ogg", AudioType.OGGVORBIS);
-                            www.SendWebRequest();
-                            while (!www.isDone) ;
-
-                            bgdata.BackgroundMusic = DownloadHandlerAudioClip.GetContent(www);
-
-                            if (File.Exists($"{bgName}/start.ogg"))
-                            {
-                                Core.guiMsg = $"Loading custom stage:\n{currStage}\n\n{currStageType}\nstart.ogg";
-                                www = UnityWebRequestMultimedia.GetAudioClip($"file:///{bgName}/start.ogg", AudioType.OGGVORBIS);
-                                www.SendWebRequest();
-                                while (!www.isDone) ;
-
-                                bgdata.StartupBackgroundMusic = DownloadHandlerAudioClip.GetContent(www);
-                            }
-                        }
-                        else if (GlobalLoopMusic != null)
-                        {
-                            bgdata.BackgroundMusic = GlobalLoopMusic;
-
-                            if (GlobalStartMusic != null)
-                            {
-                                bgdata.StartupBackgroundMusic = GlobalStartMusic;
-                            }
-                        }
-
-                        data.BattleBackgroundDataList.Add(bgdata);
-                        if (json.Disable_AirMovementRush)
-                            data.AirRushExceptionIndexList.Add(data.BattleBackgroundDataList.Count-1);
+                        yield return LoadBackgroundData(data, bgName, GlobalStartMusic, GlobalLoopMusic);
                     }
                 }
 
@@ -266,6 +281,9 @@ namespace StageLoader
                         skydata.SkyColor = new Color(json.SkyColor[0] / 255f, json.SkyColor[1] / 255f, json.SkyColor[2] / 255f);
                         skydata.BackgroundSprite = null;
                         skydata.SkyParticleSystem_Prefab = prefab.GetComponent<AirRushParticleSystem>();
+
+                        CustomSkyData customSkyData = prefab.AddComponent<CustomSkyData>();
+                        customSkyData.PrefabType = json.AirMovementRush_Prefab;
 
                         data.SkyDataList.Add(skydata);
                     }

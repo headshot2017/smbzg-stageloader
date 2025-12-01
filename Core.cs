@@ -33,6 +33,13 @@ namespace StageLoader
             LoadCustomStages();
         }
 
+        public override void OnUpdate()
+        {
+            if (Input.GetKeyDown(KeyCode.F12))
+                StageLoaderEditor.isEnabled ^= true;
+            StageLoaderEditor.OnUpdate();
+        }
+
         public override void OnGUI()
         {
             int w = 240 * 2;
@@ -57,10 +64,15 @@ namespace StageLoader
                     GUI.EndGroup();
                     break;
             }
+
+            StageLoaderEditor.OnGUI();
         }
 
         public override void OnSceneWasInitialized(int buildIndex, string sceneName)
         {
+            StageLoaderEditor.isInGame = buildIndex == 4;
+            if (StageLoaderEditor.isInGame) StageLoaderEditor.Reset();
+
             if (buildIndex == 7)
                 LoadCustomStageUI();
         }
@@ -352,7 +364,8 @@ namespace StageLoader
                 SMBZG.BattleSettings BattleSettings = (SMBZG.BattleSettings)typeof(GC).GetField("BattleSetting", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(GC.ins);
                 BattleCache.StageEnum? SelectedStage = BattleSettings.Stage;
 
-                if (isArcade || SelectedStage != 0)
+                StageLoaderEditor.isCustomStage = SelectedStage == 0;
+                if (isArcade || !StageLoaderEditor.isCustomStage)
                     return true;
 
                 FieldInfo ActiveStage = typeof(BattleBackgroundManager).GetField("ActiveStage", BindingFlags.Instance | BindingFlags.NonPublic);

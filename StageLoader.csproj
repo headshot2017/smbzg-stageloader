@@ -263,12 +263,22 @@
 		<EnableDefaultCompileItems>false</EnableDefaultCompileItems>
 	</PropertyGroup>
 
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+	  <DebugType>portable</DebugType>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+	  <DebugType>portable</DebugType>
+	</PropertyGroup>
+
 	<ItemGroup>
 		<Compile Include="BackgroundDataJson.cs" />
 		<Compile Include="Core.cs" />
+		<Compile Include="CustomSkyData.cs" />
 		<Compile Include="MRC_Custom_Closing.cs" />
 		<Compile Include="SkyDataJson.cs" />
 		<Compile Include="StageLoaderComponent.cs" />
+		<Compile Include="StageLoaderEditor.cs" />
 	</ItemGroup>
 	
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
