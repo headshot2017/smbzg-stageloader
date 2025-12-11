@@ -97,6 +97,8 @@ namespace StageLoader
 
         public static void ResetSky()
         {
+            if (!currentSky) return;
+
             airSkyR = $"{(int)(currentSky.SkyColor.r * 255)}";
             airSkyG = $"{(int)(currentSky.SkyColor.g * 255)}";
             airSkyB = $"{(int)(currentSky.SkyColor.b * 255)}";
