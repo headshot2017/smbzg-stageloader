@@ -18,6 +18,8 @@ namespace StageLoader
         public static string guiMsg;
         public static string guiTotalStages;
 
+        public static GameObject StageLoaderObj = null;
+
         public static BattleCache.StageEnum[] OriginalStageArray;
 
         public override void OnInitializeMelon()
@@ -79,9 +81,11 @@ namespace StageLoader
 
         public void LoadCustomStages()
         {
-            GameObject obj = new GameObject("StageLoader");
-            GameObject.DontDestroyOnLoad(obj);
-            StageLoaderComponent dl = obj.AddComponent<StageLoaderComponent>();
+            if (StageLoaderObj) return;
+
+            StageLoaderObj = new GameObject("StageLoader");
+            GameObject.DontDestroyOnLoad(StageLoaderObj);
+            StageLoaderComponent dl = StageLoaderObj.AddComponent<StageLoaderComponent>();
         }
 
         public void LoadCustomStageUI()

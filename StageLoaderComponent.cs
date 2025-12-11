@@ -315,6 +315,7 @@ namespace StageLoader
             BattleCache.StageArray = StageList.ToArray();
 
 
+            Core.StageLoaderObj = null;
             Destroy(gameObject);
         }
 
