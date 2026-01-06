@@ -58,7 +58,7 @@ namespace SMBZG.MovementRush.Cinematic
                 typeof(BattleBackgroundManager).GetMethod("SetGroundLevel", BindingFlags.Instance | BindingFlags.NonPublic, null, new Type[] { typeof(float) }, null).Invoke(BackgroundManager, new object[] { Victim.transform.position.y - 50f });
                 typeof(BattleBackgroundManager).GetMethod("FloorCollider_SetActive", BindingFlags.Instance | BindingFlags.NonPublic, null, new Type[] { typeof(bool) }, null).Invoke(BackgroundManager, new object[] { true });
                 typeof(BattleBackgroundManager).GetMethod("TransitionBattleBackground", BindingFlags.Instance | BindingFlags.NonPublic, null, new Type[] { typeof(BattleBackgroundData), typeof(float) }, null).Invoke(BackgroundManager, new object[] { ActiveBattleBackgroundData, 1f });
-                typeof(BattleBackgroundManager).GetMethod("SpeedLines_SetRotation", BindingFlags.Instance | BindingFlags.NonPublic, null, new Type[] { typeof(float) }, null).Invoke(BackgroundManager, new object[] { -45 * faceDir + ((!_IsDirectionOfRushRight) ? 180 : 0) });
+                BackgroundManager.SpeedLines_SetRotation(-45 * faceDir + ((!_IsDirectionOfRushRight) ? 180 : 0));
                 AudioSource sfx_whitleDrop = SoundCache.ins.PlaySound(SoundCache.ins.Battle_WhistleDrop);
                 typeof(BaseCharacter).GetProperty("HitStun", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(Victim.CharacterGO, 80f);
                 Victim.CharacterGO.ResetGravity();
