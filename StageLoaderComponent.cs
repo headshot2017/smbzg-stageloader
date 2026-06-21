@@ -1,6 +1,5 @@
 ﻿using MelonLoader;
 using System.Collections;
-using System.Xml.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -26,16 +25,29 @@ namespace StageLoader
 
             BackgroundDataJson json = JsonUtility.FromJson<BackgroundDataJson>(File.ReadAllText($"{bgName}/background.json"));
 
-            Sprite backgroundBack = null;
-            if (File.Exists($"{bgName}/backgroundback.png"))
+            // SMBZ-G v1.182: Animated background-back sprites
+            List<Sprite> backgroundBackAnim = new List<Sprite>();
+            for (int i = 0; File.Exists($"{bgName}/backgroundback_{i}.png"); i++)
+            {
+                Core.guiMsg = $"Loading custom stage:\n{currStage}\n\n{currStageType}\nbackgroundback_{i}.png";
+                yield return TextureDownload(Uri.EscapeUriString($"file:///{bgName}/backgroundback_{i}.png"));
+                if (!json.BackgroundBack_TextureFilter)
+                    texture.filterMode = FilterMode.Point;
+                Sprite backgroundBack = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(.5f, 0), json.BackgroundBack_PixelsPerUnit);
+                backgroundBack.name = $"backgroundback_{i}.png";
+                backgroundBackAnim.Add(backgroundBack);
+            }
+            if (backgroundBackAnim.Count == 0 && File.Exists($"{bgName}/backgroundback.png")) // Fallback to legacy sprite
             {
                 Core.guiMsg = $"Loading custom stage:\n{currStage}\n\n{currStageType}\nbackgroundback.png";
                 yield return TextureDownload(Uri.EscapeUriString($"file:///{bgName}/backgroundback.png"));
                 if (!json.BackgroundBack_TextureFilter)
                     texture.filterMode = FilterMode.Point;
-                backgroundBack = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(.5f, 0), json.BackgroundBack_PixelsPerUnit);
+                Sprite backgroundBack = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(.5f, 0), json.BackgroundBack_PixelsPerUnit);
                 backgroundBack.name = "backgroundback.png";
+                backgroundBackAnim.Add(backgroundBack);
             }
+
 
             List<Sprite> backgroundAnim = new List<Sprite>();
             for (int i = 0; File.Exists($"{bgName}/background_{i}.png"); i++)
@@ -49,43 +61,90 @@ namespace StageLoader
                 backgroundAnim.Add(background);
             }
 
-            Sprite ground = null;
-            if (File.Exists($"{bgName}/ground.png"))
+
+            // SMBZ-G v1.182: Animated ground sprites
+            List<Sprite> groundAnim = new List<Sprite>();
+            for (int i = 0; File.Exists($"{bgName}/ground_{i}.png"); i++)
+            {
+                Core.guiMsg = $"Loading custom stage:\n{currStage}\n\n{currStageType}\nground_{i}.png";
+                yield return TextureDownload(Uri.EscapeUriString($"file:///{bgName}/ground_{i}.png"));
+                if (!json.Ground_TextureFilter)
+                    texture.filterMode = FilterMode.Point;
+                Sprite ground = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(.5f, 0), json.Ground_PixelsPerUnit);
+                ground.name = $"ground_{i}.png";
+                groundAnim.Add(ground);
+            }
+            if (groundAnim.Count == 0 && File.Exists($"{bgName}/ground.png")) // Fallback to legacy sprite
             {
                 Core.guiMsg = $"Loading custom stage:\n{currStage}\n\n{currStageType}\nground.png";
                 yield return TextureDownload(Uri.EscapeUriString($"file:///{bgName}/ground.png"));
                 if (!json.Ground_TextureFilter)
                     texture.filterMode = FilterMode.Point;
-                ground = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(.5f, 0), json.Ground_PixelsPerUnit);
+                Sprite ground = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(.5f, 0), json.Ground_PixelsPerUnit);
                 ground.name = "ground.png";
+                groundAnim.Add(ground);
             }
 
-            Sprite groundBlurred = ground;
+            // SMBZ-G v1.182: Blurred background-back and background sprites
+            Sprite backgroundBackBlurred = null;
+            Melon<Core>.Logger.Msg($"{currStage} - {currStageType} - try to load backgroundback blurred, default is null = {backgroundBackBlurred == null}");
+            if (File.Exists($"{bgName}/backgroundback_blurred.png"))
+            {
+                Core.guiMsg = $"Loading custom stage:\n{currStage}\n\n{currStageType}\nbackgroundback_blurred.png";
+                yield return TextureDownload(Uri.EscapeUriString($"file:///{bgName}/backgroundback_blurred.png"));
+                backgroundBackBlurred = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(.5f, 0), json.BackgroundBack_PixelsPerUnit);
+                backgroundBackBlurred.name = "backgroundback_blurred.png";
+            }
+
+            Sprite backgroundBlurred = null;
+            Melon<Core>.Logger.Msg($"{currStage} - {currStageType} - try to load background blurred, default is null = {backgroundBlurred == null}");
+            if (File.Exists($"{bgName}/background_blurred.png"))
+            {
+                Core.guiMsg = $"Loading custom stage:\n{currStage}\n\n{currStageType}\nbackground_blurred.png";
+                yield return TextureDownload(Uri.EscapeUriString($"file:///{bgName}/background_blurred.png"));
+                backgroundBlurred = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(.5f, 0), json.Background_PixelsPerUnit);
+                backgroundBlurred.name = "background_blurred.png";
+            }
+
+            Sprite groundBlurred = null;
+            Melon<Core>.Logger.Msg($"{currStage} - {currStageType} - try to load ground blurred, default is null = {backgroundBlurred == null}");
             if (File.Exists($"{bgName}/ground_blurred.png"))
             {
                 Core.guiMsg = $"Loading custom stage:\n{currStage}\n\n{currStageType}\nground_blurred.png";
                 yield return TextureDownload(Uri.EscapeUriString($"file:///{bgName}/ground_blurred.png"));
-                if (!json.Ground_TextureFilter)
-                    texture.filterMode = FilterMode.Point;
                 groundBlurred = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(.5f, 0), json.Ground_PixelsPerUnit);
                 groundBlurred.name = "ground_blurred.png";
             }
 
             bgdata.name = Path.GetFileName(bgName);
             bgdata.SkyColor = new Color(json.SkyColor[0] / 255f, json.SkyColor[1] / 255f, json.SkyColor[2] / 255f);
-            bgdata.BackgroundBack_Sprite = backgroundBack;
+
+            Melon<Core>.Logger.Msg($"{currStage} - {currStageType} - a");
+            bgdata.BackgroundBack_Sprite = backgroundBackAnim.ElementAtOrDefault(0);
+            bgdata.BackgroundBack_SpriteList = backgroundBackAnim;
+            bgdata.BackgroundBackSprite_Blurred = backgroundBackBlurred;
+            bgdata.BackgroundBack_AnimationSpeed = json.BackgroundBack_AnimationSpeed;
             bgdata.BackgroundBack_Position = new Vector2(json.BackgroundBack_Position[0], json.BackgroundBack_Position[1]);
             bgdata.BackgroundBack_ParralaxSpeedX = json.BackgroundBack_ParralaxSpeedX;
             bgdata.BackgroundBack_ParralaxSpeedY = json.BackgroundBack_ParralaxSpeedY;
-            bgdata.BackgroundSprite = (backgroundAnim.Count > 0) ? backgroundAnim[0] : null;
+
+            Melon<Core>.Logger.Msg($"{currStage} - {currStageType} - b");
+            bgdata.BackgroundSprite = backgroundAnim.ElementAtOrDefault(0);
             bgdata.Background_SpriteList = backgroundAnim;
+            bgdata.BackgroundSprite_Blurred = backgroundBlurred;
             bgdata.Background_AnimationSpeed = json.Background_AnimationSpeed;
             bgdata.BackgroundPosition = new Vector2(json.Background_Position[0], json.Background_Position[1]);
             bgdata.ParralaxSpeedX = json.Background_ParralaxSpeedX;
             bgdata.ParralaxSpeedY = json.Background_ParralaxSpeedY;
-            bgdata.GroundSprite = ground;
+
+            Melon<Core>.Logger.Msg($"{currStage} - {currStageType} - c");
+            bgdata.GroundSprite = groundAnim.ElementAtOrDefault(0);
+            bgdata.Ground_SpriteList = groundAnim;
             bgdata.GroundSprite_Blurred = groundBlurred;
+            bgdata.Ground_AnimationSpeed = json.Ground_AnimationSpeed;
             bgdata.GroundPosition = new Vector2(json.Ground_Position[0], json.Ground_Position[1]);
+
+            Melon<Core>.Logger.Msg($"{currStage} - {currStageType} - done");
             bgdata.MovementRushTransitionScript = original.MovementRushTransitionScript;
             bgdata.KoopaBros_BackgroundSpriteLayer = original.KoopaBros_BackgroundSpriteLayer;
 
