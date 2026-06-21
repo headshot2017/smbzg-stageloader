@@ -87,7 +87,6 @@ namespace StageLoader
 
             // SMBZ-G v1.182: Blurred background-back and background sprites
             Sprite backgroundBackBlurred = null;
-            Melon<Core>.Logger.Msg($"{currStage} - {currStageType} - try to load backgroundback blurred, default is null = {backgroundBackBlurred == null}");
             if (File.Exists($"{bgName}/backgroundback_blurred.png"))
             {
                 Core.guiMsg = $"Loading custom stage:\n{currStage}\n\n{currStageType}\nbackgroundback_blurred.png";
@@ -97,7 +96,6 @@ namespace StageLoader
             }
 
             Sprite backgroundBlurred = null;
-            Melon<Core>.Logger.Msg($"{currStage} - {currStageType} - try to load background blurred, default is null = {backgroundBlurred == null}");
             if (File.Exists($"{bgName}/background_blurred.png"))
             {
                 Core.guiMsg = $"Loading custom stage:\n{currStage}\n\n{currStageType}\nbackground_blurred.png";
@@ -107,7 +105,6 @@ namespace StageLoader
             }
 
             Sprite groundBlurred = null;
-            Melon<Core>.Logger.Msg($"{currStage} - {currStageType} - try to load ground blurred, default is null = {backgroundBlurred == null}");
             if (File.Exists($"{bgName}/ground_blurred.png"))
             {
                 Core.guiMsg = $"Loading custom stage:\n{currStage}\n\n{currStageType}\nground_blurred.png";
@@ -119,7 +116,6 @@ namespace StageLoader
             bgdata.name = Path.GetFileName(bgName);
             bgdata.SkyColor = new Color(json.SkyColor[0] / 255f, json.SkyColor[1] / 255f, json.SkyColor[2] / 255f);
 
-            Melon<Core>.Logger.Msg($"{currStage} - {currStageType} - a");
             bgdata.BackgroundBack_Sprite = backgroundBackAnim.ElementAtOrDefault(0);
             bgdata.BackgroundBack_SpriteList = backgroundBackAnim;
             bgdata.BackgroundBackSprite_Blurred = backgroundBackBlurred;
@@ -128,7 +124,6 @@ namespace StageLoader
             bgdata.BackgroundBack_ParralaxSpeedX = json.BackgroundBack_ParralaxSpeedX;
             bgdata.BackgroundBack_ParralaxSpeedY = json.BackgroundBack_ParralaxSpeedY;
 
-            Melon<Core>.Logger.Msg($"{currStage} - {currStageType} - b");
             bgdata.BackgroundSprite = backgroundAnim.ElementAtOrDefault(0);
             bgdata.Background_SpriteList = backgroundAnim;
             bgdata.BackgroundSprite_Blurred = backgroundBlurred;
@@ -137,14 +132,12 @@ namespace StageLoader
             bgdata.ParralaxSpeedX = json.Background_ParralaxSpeedX;
             bgdata.ParralaxSpeedY = json.Background_ParralaxSpeedY;
 
-            Melon<Core>.Logger.Msg($"{currStage} - {currStageType} - c");
             bgdata.GroundSprite = groundAnim.ElementAtOrDefault(0);
             bgdata.Ground_SpriteList = groundAnim;
             bgdata.GroundSprite_Blurred = groundBlurred;
             bgdata.Ground_AnimationSpeed = json.Ground_AnimationSpeed;
             bgdata.GroundPosition = new Vector2(json.Ground_Position[0], json.Ground_Position[1]);
 
-            Melon<Core>.Logger.Msg($"{currStage} - {currStageType} - done");
             bgdata.MovementRushTransitionScript = original.MovementRushTransitionScript;
             bgdata.KoopaBros_BackgroundSpriteLayer = original.KoopaBros_BackgroundSpriteLayer;
 
