@@ -3,6 +3,7 @@ public class BackgroundDataJson
 {
     public int[]   SkyColor;
 
+    public float   BackgroundBack_AnimationSpeed;
     public float[] BackgroundBack_Position;
     public float   BackgroundBack_ParralaxSpeedX;
     public float   BackgroundBack_ParralaxSpeedY;
@@ -11,11 +12,13 @@ public class BackgroundDataJson
 
     public float   Background_AnimationSpeed;
     public float[] Background_Position;
+    public float   Background_Spacing;
     public float   Background_ParralaxSpeedX;
     public float   Background_ParralaxSpeedY;
     public bool    Background_TextureFilter;
     public float   Background_PixelsPerUnit;
 
+    public float   Ground_AnimationSpeed;
     public float[] Ground_Position;
     public bool    Ground_TextureFilter;
     public float   Ground_PixelsPerUnit;
