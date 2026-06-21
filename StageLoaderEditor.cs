@@ -18,6 +18,7 @@ namespace StageLoader
         public static string backY;
         public static string backParX;
         public static string backParY;
+        public static string backAnimSpd;
         public static string backPPU;
         public static bool backFilter;
 
@@ -26,11 +27,13 @@ namespace StageLoader
         public static string bgParX;
         public static string bgParY;
         public static string bgAnimSpd;
+        public static string bgSpacing;
         public static string bgPPU;
         public static bool bgFilter;
 
         public static string groundX;
         public static string groundY;
+        public static string groundAnimSpd;
         public static string groundPPU;
         public static bool groundFilter;
 
@@ -70,6 +73,7 @@ namespace StageLoader
             backY = $"{ActiveBattleBackgroundData.BackgroundBack_Position.y}";
             backParX = $"{ActiveBattleBackgroundData.BackgroundBack_ParralaxSpeedX}";
             backParY = $"{ActiveBattleBackgroundData.BackgroundBack_ParralaxSpeedY}";
+            backAnimSpd = $"{ActiveBattleBackgroundData.BackgroundBack_AnimationSpeed}";
             backPPU = $"{(ActiveBattleBackgroundData.BackgroundBack_Sprite ? ActiveBattleBackgroundData.BackgroundBack_Sprite.pixelsPerUnit : 0)}";
             backFilter = ActiveBattleBackgroundData.BackgroundBack_Sprite && ActiveBattleBackgroundData.BackgroundBack_Sprite.texture.filterMode != FilterMode.Point;
 
@@ -78,11 +82,13 @@ namespace StageLoader
             bgParX = $"{ActiveBattleBackgroundData.ParralaxSpeedX}";
             bgParY = $"{ActiveBattleBackgroundData.ParralaxSpeedY}";
             bgAnimSpd = $"{ActiveBattleBackgroundData.Background_AnimationSpeed}";
+            bgSpacing = $"{ActiveBattleBackgroundData.Background_Spacing}";
             bgPPU = $"{(ActiveBattleBackgroundData.BackgroundSprite ? ActiveBattleBackgroundData.BackgroundSprite.pixelsPerUnit : 0)}";
             bgFilter = ActiveBattleBackgroundData.BackgroundSprite && ActiveBattleBackgroundData.BackgroundSprite.texture.filterMode != FilterMode.Point;
 
             groundX = $"{ActiveBattleBackgroundData.GroundPosition.x}";
             groundY = $"{ActiveBattleBackgroundData.GroundPosition.y}";
+            groundAnimSpd = $"{ActiveBattleBackgroundData.Ground_AnimationSpeed}";
             groundPPU = $"{(ActiveBattleBackgroundData.GroundSprite ? ActiveBattleBackgroundData.GroundSprite.pixelsPerUnit : 0)}";
             groundFilter = ActiveBattleBackgroundData.GroundSprite && ActiveBattleBackgroundData.GroundSprite.texture.filterMode != FilterMode.Point;
 
@@ -211,18 +217,26 @@ namespace StageLoader
             backY = GUI.TextField(new Rect(theX + 96 + 16 + 64 + 8, theY + sep, 64, 20), backY);
             if (float.TryParse(backX, out outX) && float.TryParse(backY, out outY))
                 ActiveBattleBackgroundData.BackgroundBack_Position = new Vector2(outX, outY);
+
             GUI.Label(new Rect(theX, theY + sep * 2, 128, 32), "Parallax X / Y");
             backParX = GUI.TextField(new Rect(theX + 96 + 16, theY + sep * 2, 64, 20), backParX);
             backParY = GUI.TextField(new Rect(theX + 96 + 16 + 64 + 8, theY + sep * 2, 64, 20), backParY);
             float.TryParse(backParX, out ActiveBattleBackgroundData.BackgroundBack_ParralaxSpeedX);
             float.TryParse(backParY, out ActiveBattleBackgroundData.BackgroundBack_ParralaxSpeedY);
-            GUI.Label(new Rect(theX, theY + sep * 3, 128, 32), "Pixels per unit");
-            string newPPU = GUI.TextField(new Rect(theX + 96 + 16, theY + sep * 3, 128 + 8, 20), backPPU);
+
+            GUI.Label(new Rect(theX, theY + sep * 3, 128, 32), "Animation speed");
+            backAnimSpd = GUI.TextField(new Rect(theX + 96 + 16, theY + sep * 3, 128 + 8, 20), backAnimSpd);
+            float.TryParse(backAnimSpd, out ActiveBattleBackgroundData.BackgroundBack_AnimationSpeed);
+
+            GUI.Label(new Rect(theX, theY + sep * 4, 128, 32), "Pixels per unit");
+            string newPPU = GUI.TextField(new Rect(theX + 96 + 16, theY + sep * 4, 128 + 8, 20), backPPU);
             if (newPPU != backPPU) changesMade = true;
             backPPU = newPPU;
-            bool newBool = GUI.Toggle(new Rect(theX, theY + sep * 4, 128 + 8, 32), bgFilter, "Texture filter");
+
+            bool newBool = GUI.Toggle(new Rect(theX, theY + sep * 5, 128 + 8, 32), bgFilter, "Texture filter");
             if (bgFilter != newBool) changesMade = true;
             bgFilter = newBool;
+
 
             theX = 288;
             theY = 64;
@@ -232,40 +246,56 @@ namespace StageLoader
             bgY = GUI.TextField(new Rect(theX + 96 + 16 + 64 + 8, theY + sep, 64, 20), bgY);
             if (float.TryParse(bgX, out outX) && float.TryParse(bgY, out outY))
                 ActiveBattleBackgroundData.BackgroundPosition = new Vector2(outX, outY);
+
             GUI.Label(new Rect(theX, theY + sep * 2, 128, 32), "Parallax X / Y");
             bgParX = GUI.TextField(new Rect(theX + 96 + 16, theY + sep * 2, 64, 20), bgParX);
             bgParY = GUI.TextField(new Rect(theX + 96 + 16 + 64 + 8, theY + sep * 2, 64, 20), bgParY);
             float.TryParse(bgParX, out ActiveBattleBackgroundData.ParralaxSpeedX);
             float.TryParse(bgParY, out ActiveBattleBackgroundData.ParralaxSpeedY);
+
             GUI.Label(new Rect(theX, theY + sep * 3, 128, 32), "Animation speed");
             bgAnimSpd = GUI.TextField(new Rect(theX + 96 + 16, theY + sep * 3, 128 + 8, 20), bgAnimSpd);
             float.TryParse(bgAnimSpd, out ActiveBattleBackgroundData.Background_AnimationSpeed);
-            GUI.Label(new Rect(theX, theY + sep * 4, 128, 32), "Pixels per unit");
-            newPPU = GUI.TextField(new Rect(theX + 96 + 16, theY + sep * 4, 128 + 8, 20), bgPPU);
+
+            GUI.Label(new Rect(theX, theY + sep * 4, 128, 32), "X spacing");
+            bgSpacing = GUI.TextField(new Rect(theX + 96 + 16, theY + sep * 4, 128 + 8, 20), bgSpacing);
+            float.TryParse(bgSpacing, out ActiveBattleBackgroundData.Background_Spacing);
+
+            GUI.Label(new Rect(theX, theY + sep * 5, 128, 32), "Pixels per unit");
+            newPPU = GUI.TextField(new Rect(theX + 96 + 16, theY + sep * 5, 128 + 8, 20), bgPPU);
             if (newPPU != bgPPU) changesMade = true;
             bgPPU = newPPU;
-            newBool = GUI.Toggle(new Rect(theX, theY + sep * 5, 128 + 8, 32), backFilter, "Texture filter");
+
+            newBool = GUI.Toggle(new Rect(theX, theY + sep * 6, 128 + 8, 32), backFilter, "Texture filter");
             if (backFilter != newBool) changesMade = true;
             backFilter = newBool;
 
+
             theX = 8;
-            theY = 64 + 128 + 32;
+            theY = 64 + 128 + 48;
             GUI.Label(new Rect(theX, theY, 128, 32), "Ground");
             GUI.Label(new Rect(theX, theY + sep, 128, 32), "Position X / Y");
             groundX = GUI.TextField(new Rect(theX + 96 + 16, theY + sep, 64, 20), groundX);
             groundY = GUI.TextField(new Rect(theX + 96 + 16 + 64 + 8, theY + sep, 64, 20), groundY);
             if (float.TryParse(groundX, out outX) && float.TryParse(groundY, out outY))
                 ActiveBattleBackgroundData.GroundPosition = new Vector2(outX, outY);
-            GUI.Label(new Rect(theX, theY + sep * 2, 128, 32), "Pixels per unit");
+
+            GUI.Label(new Rect(theX, theY + sep * 2, 128, 32), "Animation speed");
+            groundAnimSpd = GUI.TextField(new Rect(theX + 96 + 16, theY + sep * 3, 128 + 8, 20), groundAnimSpd);
+            float.TryParse(groundAnimSpd, out ActiveBattleBackgroundData.Ground_AnimationSpeed);
+
+            GUI.Label(new Rect(theX, theY + sep * 3, 128, 32), "Pixels per unit");
             newPPU = GUI.TextField(new Rect(theX + 96 + 16, theY + sep * 2, 128 + 8, 20), groundPPU);
             if (newPPU != groundPPU) changesMade = true;
             groundPPU = newPPU;
-            newBool = GUI.Toggle(new Rect(theX, theY + sep * 3, 128 + 8, 32), groundFilter, "Texture filter");
+
+            newBool = GUI.Toggle(new Rect(theX, theY + sep * 4, 128 + 8, 32), groundFilter, "Texture filter");
             if (groundFilter != newBool) changesMade = true;
             groundFilter = newBool;
 
+
             theX = 288;
-            theY = 64 + 128 + 32;
+            theY = 64 + 128 + 48;
             GUI.Label(new Rect(theX, theY, 128, 32), "Sky color RGB");
             GUI.Label(new Rect(theX, theY + sep, 128, 32), "Red");
             skyR = GUI.TextField(new Rect(theX + 96 + 16, theY + sep, 128 + 8, 20), skyR);
@@ -277,7 +307,7 @@ namespace StageLoader
                 ActiveBattleBackgroundData.SkyColor = Camera.main.backgroundColor = new Color(outX / 255f, outY / 255f, outZ / 255f);
 
             theX = 8;
-            theY = 64 + 128 + 144;
+            theY = 64 + 128 + 144 + 32;
             craterOn = GUI.Toggle(new Rect(theX, theY, 128, 32), craterOn, "Enable crater");
             newBool = GUI.Toggle(new Rect(theX + 144 + 8, theY, 256-48, 32), craterFilter, "Crater texture filtering");
             if (craterFilter != newBool) changesMade = true;
@@ -285,7 +315,7 @@ namespace StageLoader
             airMR = GUI.Toggle(new Rect(theX + 352 + 16, theY, 288, 32), airMR, "Allow Aerial Movement Rush");
 
 
-            theY = 64 + 128 + 144 + 24;
+            theY = 64 + 128 + 144 + 32 + sep;
             if (changesMade)
                 GUI.Label(new Rect(8, theY, w - 16, 64), "Click 'Apply & reload' to see changes to Pixels per unit and texture filtering.");
 
@@ -384,7 +414,7 @@ namespace StageLoader
             if (!isEnabled || !isInGame || !isCustomStage) return;
 
             int w = 288 * 2;
-            int h = 224 * 2;
+            int h = 240 * 2;
             GUI.BeginGroup(new Rect(Screen.width / 2 - w / 2, 32, w, h));
             GUI.Box(new Rect(0, 0, w, h), "StageLoader Editor");
             if (GUI.Button(new Rect(w - 24 - 8, 8, 24, 24), "X"))
