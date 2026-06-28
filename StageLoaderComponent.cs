@@ -180,8 +180,7 @@ namespace StageLoader
             {
                 Core.guiMsg = $"Loading custom stage:\n{currStage}\n\n{currStageType}\nloop.ogg";
                 www = UnityWebRequestMultimedia.GetAudioClip($"file:///{bgName}/loop.ogg", AudioType.OGGVORBIS);
-                www.SendWebRequest();
-                while (!www.isDone) ;
+                yield return www.SendWebRequest();
 
                 bgdata.BackgroundMusic = DownloadHandlerAudioClip.GetContent(www);
 
@@ -189,8 +188,7 @@ namespace StageLoader
                 {
                     Core.guiMsg = $"Loading custom stage:\n{currStage}\n\n{currStageType}\nstart.ogg";
                     www = UnityWebRequestMultimedia.GetAudioClip($"file:///{bgName}/start.ogg", AudioType.OGGVORBIS);
-                    www.SendWebRequest();
-                    while (!www.isDone) ;
+                    yield return www.SendWebRequest();
 
                     bgdata.StartupBackgroundMusic = DownloadHandlerAudioClip.GetContent(www);
                 }
@@ -247,8 +245,7 @@ namespace StageLoader
                 {
                     Core.guiMsg = $"Loading custom stage:\n{currStage}\n\nloop.ogg";
                     www = UnityWebRequestMultimedia.GetAudioClip($"file:///{stageName}/loop.ogg", AudioType.OGGVORBIS);
-                    www.SendWebRequest();
-                    while (!www.isDone) ;
+                    yield return www.SendWebRequest();
 
                     GlobalLoopMusic = DownloadHandlerAudioClip.GetContent(www);
 
@@ -256,8 +253,7 @@ namespace StageLoader
                     {
                         Core.guiMsg = $"Loading custom stage:\n{currStage}\n\nstart.ogg";
                         www = UnityWebRequestMultimedia.GetAudioClip($"file:///{stageName}/start.ogg", AudioType.OGGVORBIS);
-                        www.SendWebRequest();
-                        while (!www.isDone) ;
+                        yield return www.SendWebRequest();
 
                         GlobalStartMusic = DownloadHandlerAudioClip.GetContent(www);
                     }
