@@ -8,12 +8,17 @@ namespace StageLoader
     public class StageLoaderComponent : MonoBehaviour
     {
         public Texture2D texture;
-        string currStage;
-        string currStageType;
+
+        Dictionary<string, Coroutine> stageCoros = [];
 
         void Start()
         {
             StartCoroutine(LoadStages());
+        }
+
+        bool IsValidStage(string stageName)
+        {
+            return Directory.Exists($"{stageName}/backgrounds") || File.Exists($"{stageName}/loop.ogg");
         }
 
         IEnumerator LoadBackgroundData(StageData data, string bgName, AudioClip GlobalStartMusic, AudioClip GlobalLoopMusic)
@@ -29,7 +34,6 @@ namespace StageLoader
             List<Sprite> backgroundBackAnim = new List<Sprite>();
             for (int i = 0; File.Exists($"{bgName}/backgroundback_{i}.png"); i++)
             {
-                Core.guiMsg = $"Loading custom stage:\n{currStage}\n\n{currStageType}\nbackgroundback_{i}.png";
                 yield return TextureDownload(Uri.EscapeUriString($"file:///{bgName}/backgroundback_{i}.png"));
                 if (!json.BackgroundBack_TextureFilter)
                     texture.filterMode = FilterMode.Point;
@@ -39,7 +43,6 @@ namespace StageLoader
             }
             if (backgroundBackAnim.Count == 0 && File.Exists($"{bgName}/backgroundback.png")) // Fallback to legacy sprite
             {
-                Core.guiMsg = $"Loading custom stage:\n{currStage}\n\n{currStageType}\nbackgroundback.png";
                 yield return TextureDownload(Uri.EscapeUriString($"file:///{bgName}/backgroundback.png"));
                 if (!json.BackgroundBack_TextureFilter)
                     texture.filterMode = FilterMode.Point;
@@ -52,7 +55,6 @@ namespace StageLoader
             List<Sprite> backgroundAnim = new List<Sprite>();
             for (int i = 0; File.Exists($"{bgName}/background_{i}.png"); i++)
             {
-                Core.guiMsg = $"Loading custom stage:\n{currStage}\n\n{currStageType}\nbackground_{i}.png";
                 yield return TextureDownload(Uri.EscapeUriString($"file:///{bgName}/background_{i}.png"));
                 if (!json.Background_TextureFilter)
                     texture.filterMode = FilterMode.Point;
@@ -66,7 +68,6 @@ namespace StageLoader
             List<Sprite> groundAnim = new List<Sprite>();
             for (int i = 0; File.Exists($"{bgName}/ground_{i}.png"); i++)
             {
-                Core.guiMsg = $"Loading custom stage:\n{currStage}\n\n{currStageType}\nground_{i}.png";
                 yield return TextureDownload(Uri.EscapeUriString($"file:///{bgName}/ground_{i}.png"));
                 if (!json.Ground_TextureFilter)
                     texture.filterMode = FilterMode.Point;
@@ -76,7 +77,6 @@ namespace StageLoader
             }
             if (groundAnim.Count == 0 && File.Exists($"{bgName}/ground.png")) // Fallback to legacy sprite
             {
-                Core.guiMsg = $"Loading custom stage:\n{currStage}\n\n{currStageType}\nground.png";
                 yield return TextureDownload(Uri.EscapeUriString($"file:///{bgName}/ground.png"));
                 if (!json.Ground_TextureFilter)
                     texture.filterMode = FilterMode.Point;
@@ -89,7 +89,6 @@ namespace StageLoader
             Sprite backgroundBackBlurred = null;
             if (File.Exists($"{bgName}/backgroundback_blurred.png"))
             {
-                Core.guiMsg = $"Loading custom stage:\n{currStage}\n\n{currStageType}\nbackgroundback_blurred.png";
                 yield return TextureDownload(Uri.EscapeUriString($"file:///{bgName}/backgroundback_blurred.png"));
                 backgroundBackBlurred = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(.5f, 0), json.BackgroundBack_PixelsPerUnit);
                 backgroundBackBlurred.name = "backgroundback_blurred.png";
@@ -98,7 +97,6 @@ namespace StageLoader
             Sprite backgroundBlurred = null;
             if (File.Exists($"{bgName}/background_blurred.png"))
             {
-                Core.guiMsg = $"Loading custom stage:\n{currStage}\n\n{currStageType}\nbackground_blurred.png";
                 yield return TextureDownload(Uri.EscapeUriString($"file:///{bgName}/background_blurred.png"));
                 backgroundBlurred = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(.5f, 0), json.Background_PixelsPerUnit);
                 backgroundBlurred.name = "background_blurred.png";
@@ -107,7 +105,6 @@ namespace StageLoader
             Sprite groundBlurred = null;
             if (File.Exists($"{bgName}/ground_blurred.png"))
             {
-                Core.guiMsg = $"Loading custom stage:\n{currStage}\n\n{currStageType}\nground_blurred.png";
                 yield return TextureDownload(Uri.EscapeUriString($"file:///{bgName}/ground_blurred.png"));
                 groundBlurred = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(.5f, 0), json.Ground_PixelsPerUnit);
                 groundBlurred.name = "ground_blurred.png";
@@ -178,7 +175,6 @@ namespace StageLoader
             // If it doesn't exist, try global stage music
             if (File.Exists($"{bgName}/loop.ogg"))
             {
-                Core.guiMsg = $"Loading custom stage:\n{currStage}\n\n{currStageType}\nloop.ogg";
                 www = UnityWebRequestMultimedia.GetAudioClip($"file:///{bgName}/loop.ogg", AudioType.OGGVORBIS);
                 yield return www.SendWebRequest();
 
@@ -186,7 +182,6 @@ namespace StageLoader
 
                 if (File.Exists($"{bgName}/start.ogg"))
                 {
-                    Core.guiMsg = $"Loading custom stage:\n{currStage}\n\n{currStageType}\nstart.ogg";
                     www = UnityWebRequestMultimedia.GetAudioClip($"file:///{bgName}/start.ogg", AudioType.OGGVORBIS);
                     yield return www.SendWebRequest();
 
@@ -208,11 +203,113 @@ namespace StageLoader
                 data.AirRushExceptionIndexList.Add(data.BattleBackgroundDataList.Count - 1);
         }
 
+        IEnumerator LoadStage(StageData data, string stageName)
+        {
+            // Load global stage music, if available
+            UnityWebRequest www;
+            AudioClip GlobalLoopMusic = null;
+            AudioClip GlobalStartMusic = null;
+            if (File.Exists($"{stageName}/loop.ogg"))
+            {
+                www = UnityWebRequestMultimedia.GetAudioClip($"file:///{stageName}/loop.ogg", AudioType.OGGVORBIS);
+                yield return www.SendWebRequest();
+
+                GlobalLoopMusic = DownloadHandlerAudioClip.GetContent(www);
+
+                if (File.Exists($"{stageName}/start.ogg"))
+                {
+                    www = UnityWebRequestMultimedia.GetAudioClip($"file:///{stageName}/start.ogg", AudioType.OGGVORBIS);
+                    yield return www.SendWebRequest();
+
+                    GlobalStartMusic = DownloadHandlerAudioClip.GetContent(www);
+                }
+            }
+
+            // Load stage backgrounds
+            if (Directory.Exists($"{stageName}/backgrounds"))
+            {
+                if (Directory.Exists($"{stageName}/backgrounds/default"))
+                    yield return LoadBackgroundData(data, $"{stageName}/backgrounds/default", GlobalStartMusic, GlobalLoopMusic);
+
+                string[] backgrounds = Directory.GetDirectories($"{stageName}/backgrounds");
+                foreach (string _bgName in backgrounds)
+                {
+                    string bgName = _bgName.Replace('\\', '/');
+                    if (Path.GetFileName(bgName).ToLower() == "default") continue;
+
+                    yield return LoadBackgroundData(data, bgName, GlobalStartMusic, GlobalLoopMusic);
+                }
+            }
+
+            // Load skies for air movement rushes
+            if (Directory.Exists($"{stageName}/sky"))
+            {
+                string[] skies = Directory.GetDirectories($"{stageName}/sky");
+                foreach (string _skyName in skies)
+                {
+                    string skyName = _skyName.Replace('\\', '/');
+
+                    SkyBackgroundData skydata = ScriptableObject.CreateInstance<SkyBackgroundData>();
+
+                    SkyDataJson json = JsonUtility.FromJson<SkyDataJson>(File.ReadAllText($"{skyName}/sky.json"));
+
+                    List<Sprite> clouds = new List<Sprite>();
+                    for (int i = 0; File.Exists($"{skyName}/cloud_{i}.png"); i++)
+                    {
+                        yield return TextureDownload(Uri.EscapeUriString($"file:///{skyName}/cloud_{i}.png"));
+                        if (!json.CloudSprite_Filter)
+                            texture.filterMode = FilterMode.Point;
+                        Sprite cloud = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0, 0));
+                        cloud.name = $"cloud_{i}.png";
+                        clouds.Add(cloud);
+                    }
+
+                    SkyBackgroundData original;
+                    if (json.AirMovementRush_Prefab == 1)
+                        original = BattleCache.ins.Stage_YoshiIsland.SkyDataList[0];
+                    else
+                        original = BattleCache.ins.Stage_MarioCircuit.SkyDataList[0];
+
+                    GameObject prefab = GameObject.Instantiate(original.SkyParticleSystem_Prefab.gameObject);
+                    prefab.name = $"SkyParticleSystem: \"{Path.GetFileName(skyName)}\"";
+                    prefab.SetActive(false);
+                    GameObject.DontDestroyOnLoad(prefab);
+
+                    if (clouds.Count > 0)
+                    {
+                        ParticleSystem particles = prefab.GetComponent<ParticleSystem>();
+                        int count = particles.textureSheetAnimation.spriteCount;
+                        for (int i = 0; i < count; i++)
+                            particles.textureSheetAnimation.RemoveSprite(0);
+                        foreach (Sprite cloud in clouds)
+                            particles.textureSheetAnimation.AddSprite(cloud);
+                    }
+
+                    skydata.name = Path.GetFileName(skyName);
+                    skydata.SkyColor = new Color(json.SkyColor[0] / 255f, json.SkyColor[1] / 255f, json.SkyColor[2] / 255f);
+                    skydata.BackgroundSprite = null;
+                    skydata.SkyParticleSystem_Prefab = prefab.GetComponent<AirRushParticleSystem>();
+
+                    CustomSkyData customSkyData = prefab.AddComponent<CustomSkyData>();
+                    customSkyData.PrefabType = json.AirMovementRush_Prefab;
+
+                    data.SkyDataList.Add(skydata);
+                }
+            }
+
+            if (data.BattleBackgroundDataList.Count > 0)
+            {
+                Melon<Core>.Logger.Msg($"Loaded custom stage '{data.name}'");
+                Debug.Log($"StageLoader: Loaded custom stage '{data.name}'");
+                Core.customStages.Add(data);
+            }
+
+            if (stageCoros.ContainsKey(data.name))
+                stageCoros.Remove(data.name);
+        }
+
         IEnumerator LoadStages()
         {
-            Application.logMessageReceived += OnLog;
-
-            Core.messageType = 1;
             Core.customStages.Clear();
 
             if (!Directory.Exists($"{Application.streamingAssetsPath}/Stages"))
@@ -231,119 +328,18 @@ namespace StageLoader
                 data.SkyDataList = new List<SkyBackgroundData>();
                 data.AirRushExceptionIndexList = new List<int>();
 
-                currStage = data.name;
-                Melon<Core>.Logger.Msg($"Loading custom stage: {currStage}");
+                if (!IsValidStage(stageName)) continue;
 
-                Core.guiMsg = $"Loading custom stage:\n{currStage}";
-                Core.guiTotalStages = $"{Core.customStages.Count}/{stages.Length} ({Core.customStages.Count / (float)stages.Length * 100f}%) stages loaded";
-
-                // Load global stage music, if available
-                UnityWebRequest www;
-                AudioClip GlobalLoopMusic = null;
-                AudioClip GlobalStartMusic = null;
-                if (File.Exists($"{stageName}/loop.ogg"))
-                {
-                    Core.guiMsg = $"Loading custom stage:\n{currStage}\n\nloop.ogg";
-                    www = UnityWebRequestMultimedia.GetAudioClip($"file:///{stageName}/loop.ogg", AudioType.OGGVORBIS);
-                    yield return www.SendWebRequest();
-
-                    GlobalLoopMusic = DownloadHandlerAudioClip.GetContent(www);
-
-                    if (File.Exists($"{stageName}/start.ogg"))
-                    {
-                        Core.guiMsg = $"Loading custom stage:\n{currStage}\n\nstart.ogg";
-                        www = UnityWebRequestMultimedia.GetAudioClip($"file:///{stageName}/start.ogg", AudioType.OGGVORBIS);
-                        yield return www.SendWebRequest();
-
-                        GlobalStartMusic = DownloadHandlerAudioClip.GetContent(www);
-                    }
-                }
-
-                // Load stage backgrounds
-                if (Directory.Exists($"{_stageName}/backgrounds"))
-                {
-                    if (Directory.Exists($"{_stageName}/backgrounds/default"))
-                    {
-                        currStageType = $"Background \"default\"";
-                        yield return LoadBackgroundData(data, $"{_stageName}/backgrounds/default", GlobalStartMusic, GlobalLoopMusic);
-                    }
-
-                    string[] backgrounds = Directory.GetDirectories($"{_stageName}/backgrounds");
-                    foreach (string _bgName in backgrounds)
-                    {
-                        string bgName = _bgName.Replace('\\', '/');
-                        if (Path.GetFileName(bgName).ToLower() == "default") continue;
-
-                        currStageType = $"Background \"{Path.GetFileName(bgName)}\"";
-                        yield return LoadBackgroundData(data, bgName, GlobalStartMusic, GlobalLoopMusic);
-                    }
-                }
-
-                // Load skies for air movement rushes
-                if (Directory.Exists($"{_stageName}/sky"))
-                {
-                    string[] skies = Directory.GetDirectories($"{_stageName}/sky");
-                    foreach (string _skyName in skies)
-                    {
-                        string skyName = _skyName.Replace('\\', '/');
-                        currStageType = $"Sky \"{Path.GetFileName(skyName)}\"";
-
-                        SkyBackgroundData skydata = ScriptableObject.CreateInstance<SkyBackgroundData>();
-
-                        SkyDataJson json = JsonUtility.FromJson<SkyDataJson>(File.ReadAllText($"{skyName}/sky.json"));
-
-                        List<Sprite> clouds = new List<Sprite>();
-                        for (int i = 0; File.Exists($"{skyName}/cloud_{i}.png"); i++)
-                        {
-                            Core.guiMsg = $"Loading custom stage:\n{currStage}\n\n{currStageType}\ncloud_{i}.png";
-                            yield return TextureDownload(Uri.EscapeUriString($"file:///{skyName}/cloud_{i}.png"));
-                            if (!json.CloudSprite_Filter)
-                                texture.filterMode = FilterMode.Point;
-                            Sprite cloud = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0, 0));
-                            cloud.name = $"cloud_{i}.png";
-                            clouds.Add(cloud);
-                        }
-
-                        SkyBackgroundData original;
-                        if (json.AirMovementRush_Prefab == 1)
-                            original = BattleCache.ins.Stage_YoshiIsland.SkyDataList[0];
-                        else
-                            original = BattleCache.ins.Stage_MarioCircuit.SkyDataList[0];
-
-                        GameObject prefab = GameObject.Instantiate(original.SkyParticleSystem_Prefab.gameObject);
-                        prefab.name = $"SkyParticleSystem: \"{Path.GetFileName(skyName)}\"";
-                        prefab.SetActive(false);
-                        GameObject.DontDestroyOnLoad(prefab);
-
-                        if (clouds.Count > 0)
-                        {
-                            ParticleSystem particles = prefab.GetComponent<ParticleSystem>();
-                            int count = particles.textureSheetAnimation.spriteCount;
-                            for (int i = 0; i < count; i++)
-                                particles.textureSheetAnimation.RemoveSprite(0);
-                            foreach (Sprite cloud in clouds)
-                                particles.textureSheetAnimation.AddSprite(cloud);
-                        }
-
-                        skydata.name = Path.GetFileName(skyName);
-                        skydata.SkyColor = new Color(json.SkyColor[0] / 255f, json.SkyColor[1] / 255f, json.SkyColor[2] / 255f);
-                        skydata.BackgroundSprite = null;
-                        skydata.SkyParticleSystem_Prefab = prefab.GetComponent<AirRushParticleSystem>();
-
-                        CustomSkyData customSkyData = prefab.AddComponent<CustomSkyData>();
-                        customSkyData.PrefabType = json.AirMovementRush_Prefab;
-
-                        data.SkyDataList.Add(skydata);
-                    }
-                }
-
-                if (data.BattleBackgroundDataList.Count > 0)
-                    Core.customStages.Add(data);
+                stageCoros[data.name] = StartCoroutine(LoadStage(data, stageName));
             }
 
-            if (Core.messageType != 2)
-                Core.messageType = 0;
-            Application.logMessageReceived -= OnLog;
+            while (stageCoros.Count > 0)
+                yield return null;
+
+            Core.customStages.Sort((s1, s2) => s1.name.CompareTo(s2.name));
+
+            Melon<Core>.Logger.Msg($"Loading finished with {Core.customStages.Count} custom stages");
+            Debug.Log($"StageLoader: Loading finished with {Core.customStages.Count} custom stages");
 
             if (Core.stageDropdown != null)
             {
@@ -365,15 +361,6 @@ namespace StageLoader
 
             Core.StageLoaderObj = null;
             Destroy(gameObject);
-        }
-
-        void OnLog(string message, string stacktrace, LogType type)
-        {
-            if (type == LogType.Exception)
-            {
-                Core.messageType = 2;
-                Core.guiMsg = $"Error loading stage\n{currStage}\n{currStageType}\n\n{message}\n\n{stacktrace}";
-            }
         }
 
         IEnumerator TextureDownload(string url)
