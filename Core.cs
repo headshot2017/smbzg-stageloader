@@ -82,6 +82,7 @@ namespace StageLoader
 
             // set parent of Scroll View(Clone) to StageSelectPage
             ScrollView.transform.SetParent(root.transform);
+            ScrollView.name = "Scroll View";
 
             // set parents of StageGrid's children to Scroll View(Clone)/Viewport/Content
             while (StageGrid.transform.childCount > 0)
@@ -139,6 +140,29 @@ namespace StageLoader
                 if (stageInt < 100) return true;
                 __result = customStages[stageInt - 100];
                 return false;
+            }
+        }
+
+        [HarmonyPatch(typeof(CharacterSelectScript), "ShowStageSelectScreen")]
+        private static class ShowStageSelectPatch
+        {
+            private static void Postfix()
+            {
+                Transform scrollView = CharacterSelectScript.ins.Section_StageSelect.transform.Find("Scroll View");
+                if (scrollView == null) return;
+
+                Transform stageGrid = scrollView.Find("Viewport").Find("Content");
+                foreach (Transform stageObj in stageGrid)
+                {
+                    Text stageText = stageObj.Find("Image").GetComponentInChildren<Text>();
+
+                    Canvas.ForceUpdateCanvases();
+                    while (stageText.cachedTextGenerator.characterCountVisible < stageText.text.Length && stageText.fontSize > 1)
+                    {
+                        stageText.fontSize--;
+                        Canvas.ForceUpdateCanvases();
+                    }
+                }
             }
         }
 
