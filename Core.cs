@@ -12,7 +12,7 @@ namespace StageLoader
 {
     public class Core : MelonMod
     {
-        public static List<StageData> customStages;
+        public static List<StageDataExt> customStages;
         public static Dropdown stageDropdown;
 
         public static GameObject StageLoaderObj = null;
@@ -21,7 +21,7 @@ namespace StageLoader
 
         public override void OnInitializeMelon()
         {
-            customStages = new List<StageData>();
+            customStages = new List<StageDataExt>();
             stageDropdown = null;
         }
 
@@ -100,6 +100,7 @@ namespace StageLoader
             ScrollView.GetComponent<RectTransform>().sizeDelta = new Vector2(0, -300);
             ScrollView.GetComponent<ScrollRect>().inertia = false;
             ScrollView.GetComponent<ScrollRect>().movementType = ScrollRect.MovementType.Clamped;
+            ScrollView.GetComponent<ScrollRect>().scrollSensitivity = 50;
 
             // set Scroll View(Clone)/ Viewport / Content GridLayoutGroup.cellSize to 230,170(or 208.3333 149.4) and GridLayoutGroup.constraintCount to 6(FixedColumnCount)
             GridLayoutGroup grid = Content.GetComponent<GridLayoutGroup>();
@@ -114,21 +115,28 @@ namespace StageLoader
             // add all the stages!
             for (int i=0; i<customStages.Count; i++)
             {
-                StageData stage = customStages[i];
+                StageDataExt stage = customStages[i];
                 GameObject stageClone = GameObject.Instantiate(Content.transform.GetChild(1).gameObject, Content.transform);
                 StageSelector stageSelectorComp = stageClone.GetComponent<StageSelector>();
-                Image stageImage = stageClone.transform.Find("Mask").Find("Image").GetComponent<Image>();
                 Text stageText = stageClone.transform.Find("Image").GetComponentInChildren<Text>();
+                Image stageImage = stageClone.transform.Find("Mask").Find("Image").GetComponent<Image>();
 
                 stageClone.name = stage.name;
                 stageSelectorComp.ChooseRandomStage = false;
                 stageSelectorComp.FixedBattleBackgroundSelection = true;
                 stageSelectorComp.BattleBackgroundIndex = 0;
                 stageSelectorComp.Stage = (BattleCache.StageEnum)(i + 100);
-                stageImage.enabled = false;
                 stageText.text = stage.name;
                 stageText.resizeTextForBestFit = true;
                 stageText.resizeTextMaxSize = stageText.fontSize;
+
+                if (stage.thumbnail)
+                {
+                    stageImage.sprite = stage.thumbnail;
+                    stageImage.transform.localPosition = Vector3.zero;
+                }
+                else
+                    stageImage.enabled = false;
 
                 CharacterSelectScript.ins.StageList.Add(stageSelectorComp);
             }
@@ -187,7 +195,7 @@ namespace StageLoader
         {
             private static bool Prefix(BattleBackgroundManager __instance, SkyBackgroundData skyBackground)
             {
-                foreach (StageData stage in customStages)
+                foreach (StageDataExt stage in customStages)
                 {
                     foreach (SkyBackgroundData sky in stage.SkyDataList)
                     {

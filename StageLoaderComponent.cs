@@ -1,5 +1,7 @@
 ﻿using MelonLoader;
+using MelonLoader.TinyJSON;
 using System.Collections;
+using System.Xml.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -21,7 +23,7 @@ namespace StageLoader
             return Directory.Exists($"{stageName}/backgrounds") || File.Exists($"{stageName}/loop.ogg");
         }
 
-        IEnumerator LoadBackgroundData(StageData data, string bgName, AudioClip GlobalStartMusic, AudioClip GlobalLoopMusic)
+        IEnumerator LoadBackgroundData(StageDataExt data, string bgName, AudioClip GlobalStartMusic, AudioClip GlobalLoopMusic)
         {
             UnityWebRequest www;
 
@@ -203,8 +205,15 @@ namespace StageLoader
                 data.AirRushExceptionIndexList.Add(data.BattleBackgroundDataList.Count - 1);
         }
 
-        IEnumerator LoadStage(StageData data, string stageName)
+        IEnumerator LoadStage(StageDataExt data, string stageName)
         {
+            // load thumbnail if available
+            if (File.Exists($"{stageName}/thumbnail.png"))
+            {
+                yield return TextureDownload(Uri.EscapeUriString($"file:///{stageName}/thumbnail.png"));
+                data.thumbnail = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(.5f, .5f), 30);
+            }
+
             // Load global stage music, if available
             UnityWebRequest www;
             AudioClip GlobalLoopMusic = null;
@@ -321,7 +330,7 @@ namespace StageLoader
             {
                 string stageName = _stageName.Replace('\\', '/');
 
-                StageData data = ScriptableObject.CreateInstance<StageData>();
+                StageDataExt data = ScriptableObject.CreateInstance<StageDataExt>();
 
                 data.name = Path.GetFileName(stageName);
                 data.BattleBackgroundDataList = new List<BattleBackgroundData>();
@@ -346,7 +355,7 @@ namespace StageLoader
                 Core.stageDropdown.options.Clear();
 
                 List<string> stageNames = new List<string>();
-                foreach (StageData stage in Core.customStages)
+                foreach (StageDataExt stage in Core.customStages)
                     stageNames.Add(stage.name);
 
                 Core.stageDropdown.AddOptions(stageNames);
