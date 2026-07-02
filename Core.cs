@@ -98,6 +98,8 @@ namespace StageLoader
 
             // set Scroll View(Clone) RectTransform.sizeDelta to 0,-300
             ScrollView.GetComponent<RectTransform>().sizeDelta = new Vector2(0, -300);
+            ScrollView.GetComponent<ScrollRect>().inertia = false;
+            ScrollView.GetComponent<ScrollRect>().movementType = ScrollRect.MovementType.Clamped;
 
             // set Scroll View(Clone)/ Viewport / Content GridLayoutGroup.cellSize to 230,170(or 208.3333 149.4) and GridLayoutGroup.constraintCount to 6(FixedColumnCount)
             GridLayoutGroup grid = Content.GetComponent<GridLayoutGroup>();
@@ -146,6 +148,37 @@ namespace StageLoader
                 if (stageInt < 100) return true;
                 __result = customStages[stageInt - 100];
                 return false;
+            }
+        }
+
+        [HarmonyPatch(typeof(CharacterSelectPlayerInputHandler), "HoverStage", new Type[] { typeof(StageSelector) })]
+        private static class HoverStagePatch
+        {
+            private static void Postfix(CharacterSelectPlayerInputHandler __instance, StageSelector stage)
+            {
+                // only P1 controls scrolling
+                int ind = (int)__instance.GetType().BaseType.GetField("InputPlayerIndex", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(__instance);
+                if (ind != 0) return;
+
+                // StageSelector -> Content -> Viewport -> Scroll View
+                ScrollRect scrollRect = stage.transform.parent.parent.parent.GetComponent<ScrollRect>();
+                Transform target = stage.transform;
+
+                Canvas.ForceUpdateCanvases();
+                Vector2 anchoredPosition = scrollRect.content.anchoredPosition;
+                Vector2 anchoredPosition2 = (Vector2)scrollRect.transform.InverseTransformPoint(scrollRect.content.position) - (Vector2)scrollRect.transform.InverseTransformPoint(target.position);
+                anchoredPosition2 += -(new Vector2(scrollRect.content.rect.width, scrollRect.content.rect.height) * 0.2f);
+                if (!scrollRect.horizontal)
+                {
+                    anchoredPosition2.x = anchoredPosition.x;
+                }
+
+                if (!scrollRect.vertical)
+                {
+                    anchoredPosition2.y = anchoredPosition.y;
+                }
+
+                scrollRect.content.anchoredPosition = anchoredPosition2;
             }
         }
 
