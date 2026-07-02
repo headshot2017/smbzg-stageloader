@@ -91,6 +91,7 @@ namespace StageLoader
             GameObject.Destroy(StageGrid.gameObject);
 
             // set local position to 0,0,0 of: Scroll View(Clone), Viewport, Content
+            ScrollView.transform.localScale = Vector3.one;
             ScrollView.transform.localPosition = Vector3.zero;
             Viewport.transform.localPosition = Vector3.zero;
             Content.transform.localPosition = Vector3.zero;
@@ -101,6 +102,7 @@ namespace StageLoader
             // set Scroll View(Clone)/ Viewport / Content GridLayoutGroup.cellSize to 230,170(or 208.3333 149.4) and GridLayoutGroup.constraintCount to 6(FixedColumnCount)
             GridLayoutGroup grid = Content.GetComponent<GridLayoutGroup>();
             grid.cellSize = new Vector2(208.3333f, 149.4f);
+            grid.spacing = new Vector2(15, 20);
             grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
             grid.constraintCount = 6;
             grid.padding.top = 3;
@@ -123,12 +125,16 @@ namespace StageLoader
                 stageSelectorComp.Stage = (BattleCache.StageEnum)(i + 100);
                 stageImage.enabled = false;
                 stageText.text = stage.name;
+                stageText.resizeTextForBestFit = true;
+                stageText.resizeTextMaxSize = stageText.fontSize;
 
                 CharacterSelectScript.ins.StageList.Add(stageSelectorComp);
             }
 
-            // go back to top
-            ScrollView.GetComponent<ScrollRect>().verticalNormalizedPosition = 1;
+            foreach (Transform stage in Content.transform)
+            {
+                stage.localScale = Vector3.one;
+            }
         }
 
         [HarmonyPatch(typeof(BattleCache), "Stage_GetData", new Type[] { typeof(BattleCache.StageEnum) })]
@@ -140,29 +146,6 @@ namespace StageLoader
                 if (stageInt < 100) return true;
                 __result = customStages[stageInt - 100];
                 return false;
-            }
-        }
-
-        [HarmonyPatch(typeof(CharacterSelectScript), "ShowStageSelectScreen")]
-        private static class ShowStageSelectPatch
-        {
-            private static void Postfix()
-            {
-                Transform scrollView = CharacterSelectScript.ins.Section_StageSelect.transform.Find("Scroll View");
-                if (scrollView == null) return;
-
-                Transform stageGrid = scrollView.Find("Viewport").Find("Content");
-                foreach (Transform stageObj in stageGrid)
-                {
-                    Text stageText = stageObj.Find("Image").GetComponentInChildren<Text>();
-
-                    Canvas.ForceUpdateCanvases();
-                    while (stageText.cachedTextGenerator.characterCountVisible < stageText.text.Length && stageText.fontSize > 1)
-                    {
-                        stageText.fontSize--;
-                        Canvas.ForceUpdateCanvases();
-                    }
-                }
             }
         }
 
