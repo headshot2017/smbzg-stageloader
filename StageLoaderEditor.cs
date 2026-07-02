@@ -318,6 +318,23 @@ namespace StageLoader
             if (changesMade)
                 GUI.Label(new Rect(8, theY, w - 16, 64), "Click 'Apply & reload' to see changes to Pixels per unit and texture filtering.");
 
+            if (GUI.Button(new Rect(8, h - 16 - 24 - sep, w/2-16, 24), "Toggle character sprites"))
+            {
+                List<CharacterControl> ActiveCharacterControlList =
+                    (List<CharacterControl>)typeof(BattleController).GetField("ActiveCharacterControlList", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(BattleController.instance);
+
+                foreach (CharacterControl c in ActiveCharacterControlList)
+                {
+                    if (c.CharacterGO == null)
+                        continue;
+
+                    if (c.CharacterGO.Comp_SpriteContainer != null)
+                        c.CharacterGO.Comp_SpriteContainer.gameObject.SetActive(!c.CharacterGO.Comp_SpriteContainer.gameObject.activeSelf);
+                    else if (c.CharacterGO.Comp_SpriteRenderer != null)
+                        c.CharacterGO.Comp_SpriteRenderer.enabled ^= true;
+                }
+            }
+
 
             if (GUI.Button(new Rect(8, h - 8 - 24, 32, 24), "<<"))
             {
