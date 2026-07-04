@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using MelonLoader;
+using SMBZG;
 using SMBZG.CharacterSelect;
 using System.Reflection;
 using UnityEngine;
@@ -164,9 +165,26 @@ namespace StageLoader
         {
             private static void Postfix(CharacterSelectPlayerInputHandler __instance, StageSelector stage)
             {
-                // only P1 controls scrolling
-                int ind = (int)__instance.GetType().BaseType.GetField("InputPlayerIndex", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(__instance);
-                if (ind != 0) return;
+                // focus scrolling on first player that hasn't confirmed selection
+                // e.g. focus on P1, then after P1 confirms, focus on P2, then P3...
+
+                CharacterSelectPlayerInputHandler focusPlayer = null;
+                List<CharacterSelectPlayerInputHandler_Base> ActiveCharacterSelectPlayerInputHandlerList =
+                    (List<CharacterSelectPlayerInputHandler_Base>)typeof(CharacterSelectScript_Base).GetField("ActiveCharacterSelectPlayerInputHandlerList", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(CharacterSelectScript.ins);
+
+                foreach (var player in ActiveCharacterSelectPlayerInputHandlerList)
+                {
+                    int playerState = (int)typeof(CharacterSelectPlayerInputHandler).GetProperty("CurrentState", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(player);
+                    int ConfirmedStageSelection = (int)typeof(CharacterSelectPlayerInputHandler).GetNestedType("StateENUM", BindingFlags.NonPublic).GetField("ConfirmedStageSelection").GetValue(null);
+
+                    if (playerState != ConfirmedStageSelection)
+                    {
+                        focusPlayer = player as CharacterSelectPlayerInputHandler;
+                        break;
+                    }
+                }
+
+                if (__instance != focusPlayer) return;
 
                 // StageSelector -> Content -> Viewport -> Scroll View
                 ScrollRect scrollRect = stage.transform.parent.parent.parent.GetComponent<ScrollRect>();
