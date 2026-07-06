@@ -14,7 +14,6 @@ namespace StageLoader
     public class Core : MelonMod
     {
         public static List<StageDataExt> customStages;
-        public static Dropdown stageDropdown;
 
         public static GameObject StageLoaderObj = null;
 
@@ -23,7 +22,6 @@ namespace StageLoader
         public override void OnInitializeMelon()
         {
             customStages = new List<StageDataExt>();
-            stageDropdown = null;
         }
 
         public override void OnLateInitializeMelon()

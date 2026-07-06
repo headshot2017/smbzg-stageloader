@@ -1,7 +1,5 @@
 ﻿using MelonLoader;
-using MelonLoader.TinyJSON;
 using System.Collections;
-using System.Xml.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -349,18 +347,6 @@ namespace StageLoader
 
             Melon<Core>.Logger.Msg($"Loading finished with {Core.customStages.Count} custom stages");
             Debug.Log($"StageLoader: Loading finished with {Core.customStages.Count} custom stages");
-
-            if (Core.stageDropdown != null)
-            {
-                Core.stageDropdown.options.Clear();
-
-                List<string> stageNames = new List<string>();
-                foreach (StageDataExt stage in Core.customStages)
-                    stageNames.Add(stage.name);
-
-                Core.stageDropdown.AddOptions(stageNames);
-                Core.stageDropdown.value = 0;
-            }
 
             List<BattleCache.StageEnum> StageList = Core.OriginalStageArray.ToList();
             for (int i = 0; i < Core.customStages.Count; i++)
