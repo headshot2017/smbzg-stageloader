@@ -2,6 +2,6 @@
 
 Mod for [SMBZ-G](https://sites.google.com/view/smbz-g) which allows creating and playing custom stages made by the community.
 
-Requires [MelonLoader](https://melonwiki.xyz/#/?id=requirements)
+Requires [MelonLoader](https://melonwiki.xyz/#/?id=requirements) and [SMBZModsMenu](https://github.com/headshot2017/smbzg-modsmenu)
 
 Custom stages are to be installed in `SMBZ-G_Data\StreamingAssets\Stages`

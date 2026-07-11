@@ -27,6 +27,15 @@ namespace StageLoader
         public override void OnLateInitializeMelon()
         {
             OriginalStageArray = BattleCache.StageArray;
+
+            SMBZModsMenu.Core.ModEntries.Add(new()
+            {
+                info = Info,
+                reloadFunction = LoadCustomStages,
+                updateLocation = SMBZModsMenu.ModUpdateLocation.Github,
+                updateRepo = "headshot2017/smbzg-stageloader"
+            });
+
             LoadCustomStages();
         }
 
@@ -53,11 +62,11 @@ namespace StageLoader
 
         public void LoadCustomStages()
         {
-            if (StageLoaderObj) return;
+            if (StageLoaderObj != null) return;
 
             StageLoaderObj = new GameObject("StageLoader");
             GameObject.DontDestroyOnLoad(StageLoaderObj);
-            StageLoaderComponent dl = StageLoaderObj.AddComponent<StageLoaderComponent>();
+            StageLoaderObj.AddComponent<StageLoaderComponent>();
         }
 
         public void LoadCustomStageUI()
