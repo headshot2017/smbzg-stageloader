@@ -56,7 +56,7 @@ namespace StageLoader
             StageLoaderEditor.isInGame = sceneName == "Battle";
             if (StageLoaderEditor.isInGame) StageLoaderEditor.Reset();
 
-            if (buildIndex == 7)
+            if (sceneName == "CharacterSelect" || sceneName == "CharacterSelect_KingOfTheHill")
                 LoadCustomStageUI();
         }
 
