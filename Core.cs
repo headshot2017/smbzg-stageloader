@@ -53,7 +53,7 @@ namespace StageLoader
 
         public override void OnSceneWasInitialized(int buildIndex, string sceneName)
         {
-            StageLoaderEditor.isInGame = buildIndex == 4;
+            StageLoaderEditor.isInGame = sceneName == "Battle";
             if (StageLoaderEditor.isInGame) StageLoaderEditor.Reset();
 
             if (buildIndex == 7)
@@ -167,6 +167,80 @@ namespace StageLoader
             }
         }
 
+        [HarmonyPatch(typeof(CharacterSelectPlayerInputHandler), "ProcessInput")]
+        private static class ProcessInputPatch
+        {
+            private static bool Prefix(CharacterSelectPlayerInputHandler __instance)
+            {
+                ZIG_PlayerInput MyPlayerInput = (ZIG_PlayerInput)__instance.GetType().GetField("MyPlayerInput", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(__instance);
+                PropertyInfo CurrentState = __instance.GetType().GetProperty("CurrentState", BindingFlags.Instance | BindingFlags.NonPublic);
+                FieldInfo StageSelectionCurrentIndex = __instance.GetType().GetField("StageSelectionCurrentIndex", BindingFlags.Instance | BindingFlags.NonPublic);
+                int ChoosingStage = (int)__instance.GetType().GetNestedType("StateENUM", BindingFlags.NonPublic).GetField("ChoosingStage").GetValue(null);
+                int ConfirmedStageSelection = (int)__instance.GetType().GetNestedType("StateENUM", BindingFlags.NonPublic).GetField("ConfirmedStageSelection").GetValue(null);
+
+
+                if (MyPlayerInput == null || (int)CurrentState.GetValue(__instance) != ChoosingStage)
+                    return true;
+
+                Transform StageSelectRoot = GameObject.Find("Canvas").transform.Find("StageSelectPage");
+                GridLayoutGroup grid = StageSelectRoot.Find("Scroll View").Find("Viewport").Find("Content").GetComponent<GridLayoutGroup>();
+
+                var pInput = MyPlayerInput.InputActionAsset.CharacterSelect;
+
+                // Select Stage
+                if (pInput.Submit.WasPressedThisFrame())
+                {
+                    SoundCache.ins.PlaySound(SoundCache.ins.Menu_OK);
+                    CurrentState.SetValue(__instance, ConfirmedStageSelection);
+                    typeof(UI_PlayerCursor).GetMethod("MoveToPosition", BindingFlags.Instance | BindingFlags.NonPublic, null, [typeof(RectTransform)], null).Invoke(__instance.UI_PlayerCursor, [CharacterSelectScript.ins.ReadyContainer]);
+                    typeof(CharacterSelectScript).GetMethod("TrySubmitStageSelection", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(CharacterSelectScript.ins, null);
+                }
+                // Go left
+                else if (pInput.Left.WasPressedThisFrame())
+                {
+                    SoundCache.ins.PlaySound(SoundCache.ins.Menu_Navigate);
+                    StageSelectionCurrentIndex.SetValue(__instance, (int)StageSelectionCurrentIndex.GetValue(__instance) - 1);
+                    if ((int)StageSelectionCurrentIndex.GetValue(__instance) < 0)
+                        StageSelectionCurrentIndex.SetValue(__instance, CharacterSelectScript.ins.StageList.Count - 1);
+                    __instance.GetType().GetMethod("HoverStage", BindingFlags.Instance | BindingFlags.NonPublic, null, [], null).Invoke(__instance, null);
+                }
+                // Go right
+                else if (pInput.Right.WasPressedThisFrame())
+                {
+                    SoundCache.ins.PlaySound(SoundCache.ins.Menu_Navigate);
+                    StageSelectionCurrentIndex.SetValue(__instance, (int)StageSelectionCurrentIndex.GetValue(__instance) + 1);
+                    if (CharacterSelectScript.ins.StageList.Count <= (int)StageSelectionCurrentIndex.GetValue(__instance))
+                        StageSelectionCurrentIndex.SetValue(__instance, 0);
+                    __instance.GetType().GetMethod("HoverStage", BindingFlags.Instance | BindingFlags.NonPublic, null, [], null).Invoke(__instance, null);
+                }
+                // Go up
+                else if (pInput.Up.WasPressedThisFrame())
+                {
+                    SoundCache.ins.PlaySound(SoundCache.ins.Menu_Navigate);
+                    StageSelectionCurrentIndex.SetValue(__instance, (int)StageSelectionCurrentIndex.GetValue(__instance) - grid.constraintCount);
+                    if ((int)StageSelectionCurrentIndex.GetValue(__instance) < 0)
+                        StageSelectionCurrentIndex.SetValue(__instance, 0);
+                    __instance.GetType().GetMethod("HoverStage", BindingFlags.Instance | BindingFlags.NonPublic, null, [], null).Invoke(__instance, null);
+                }
+                // Go down
+                else if (pInput.Down.WasPressedThisFrame())
+                {
+                    SoundCache.ins.PlaySound(SoundCache.ins.Menu_Navigate);
+                    StageSelectionCurrentIndex.SetValue(__instance, (int)StageSelectionCurrentIndex.GetValue(__instance) + grid.constraintCount);
+                    if (CharacterSelectScript.ins.StageList.Count <= (int)StageSelectionCurrentIndex.GetValue(__instance))
+                        StageSelectionCurrentIndex.SetValue(__instance, CharacterSelectScript.ins.StageList.Count - 1);
+                    __instance.GetType().GetMethod("HoverStage", BindingFlags.Instance | BindingFlags.NonPublic, null, [], null).Invoke(__instance, null);
+                }
+                // Go back to character select
+                else if (pInput.Cancel.WasPressedThisFrame())
+                {
+                    CharacterSelectScript.ins.ShowCharacterSelectScreen();
+                }
+
+                return false;
+            }
+        }
+
         [HarmonyPatch(typeof(CharacterSelectPlayerInputHandler), "HoverStage", new Type[] { typeof(StageSelector) })]
         private static class HoverStagePatch
         {
@@ -181,8 +255,8 @@ namespace StageLoader
 
                 foreach (var player in ActiveCharacterSelectPlayerInputHandlerList)
                 {
-                    int playerState = (int)typeof(CharacterSelectPlayerInputHandler).GetProperty("CurrentState", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(player);
-                    int ConfirmedStageSelection = (int)typeof(CharacterSelectPlayerInputHandler).GetNestedType("StateENUM", BindingFlags.NonPublic).GetField("ConfirmedStageSelection").GetValue(null);
+                    int playerState = (int)__instance.GetType().GetProperty("CurrentState", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(player);
+                    int ConfirmedStageSelection = (int)__instance.GetType().GetNestedType("StateENUM", BindingFlags.NonPublic).GetField("ConfirmedStageSelection").GetValue(null);
 
                     if (playerState != ConfirmedStageSelection)
                     {
@@ -201,6 +275,7 @@ namespace StageLoader
                 Vector2 anchoredPosition = scrollRect.content.anchoredPosition;
                 Vector2 anchoredPosition2 = (Vector2)scrollRect.transform.InverseTransformPoint(scrollRect.content.position) - (Vector2)scrollRect.transform.InverseTransformPoint(target.position);
                 anchoredPosition2 += -(new Vector2(scrollRect.content.rect.width, scrollRect.content.rect.height) * 0.2f);
+
                 if (!scrollRect.horizontal)
                 {
                     anchoredPosition2.x = anchoredPosition.x;
