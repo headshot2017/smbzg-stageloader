@@ -182,6 +182,16 @@ namespace StageLoader
                 if (MyPlayerInput == null || (int)CurrentState.GetValue(__instance) != ChoosingStage)
                     return true;
 
+                // ugly hack to force stage thumbnails to correct position...
+                foreach (StageSelector stageSelectorComp in CharacterSelectScript.ins.StageList)
+                {
+                    // custom stages only
+                    if ((int)stageSelectorComp.Stage < 100) continue;
+
+                    Image stageImage = stageSelectorComp.transform.Find("Mask").Find("Image").GetComponent<Image>();
+                    stageImage.transform.localPosition = Vector3.zero;
+                }
+
                 Transform StageSelectRoot = GameObject.Find("Canvas").transform.Find("StageSelectPage");
                 GridLayoutGroup grid = StageSelectRoot.Find("Scroll View").Find("Viewport").Find("Content").GetComponent<GridLayoutGroup>();
 
