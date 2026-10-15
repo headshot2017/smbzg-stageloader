@@ -54,7 +54,7 @@ namespace StageLoader
         public override void OnSceneWasInitialized(int buildIndex, string sceneName)
         {
             StageLoaderEditor.isInGame = sceneName == "Battle";
-            if (StageLoaderEditor.isInGame) StageLoaderEditor.Reset();
+            if (StageLoaderEditor.isInGame && StageLoaderEditor.isCustomStage) StageLoaderEditor.Reset();
 
             if (sceneName == "CharacterSelect" || sceneName == "CharacterSelect_KingOfTheHill")
                 LoadCustomStageUI();
