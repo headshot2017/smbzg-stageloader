@@ -9,6 +9,7 @@ public class BackgroundDataJson
     public float   BackgroundBack_ParralaxSpeedY;
     public bool    BackgroundBack_TextureFilter;
     public float   BackgroundBack_PixelsPerUnit;
+    public float   BackgroundBack_AutoscrollSpeed;
 
     public float   Background_AnimationSpeed;
     public float[] Background_Position;

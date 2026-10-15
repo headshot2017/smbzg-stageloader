@@ -117,6 +117,7 @@ namespace StageLoader
             bgdata.BackgroundBack_SpriteList = backgroundBackAnim;
             bgdata.BackgroundBackSprite_Blurred = backgroundBackBlurred;
             bgdata.BackgroundBack_AnimationSpeed = json.BackgroundBack_AnimationSpeed;
+            bgdata.BackgroundBack_AutoscrollSpeed = json.BackgroundBack_AutoscrollSpeed;
             bgdata.BackgroundBack_Position = new Vector2(json.BackgroundBack_Position[0], json.BackgroundBack_Position[1]);
             bgdata.BackgroundBack_ParralaxSpeedX = json.BackgroundBack_ParralaxSpeedX;
             bgdata.BackgroundBack_ParralaxSpeedY = json.BackgroundBack_ParralaxSpeedY;

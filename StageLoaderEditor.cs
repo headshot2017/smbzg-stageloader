@@ -18,6 +18,7 @@ namespace StageLoader
         public static string backParX;
         public static string backParY;
         public static string backAnimSpd;
+        public static string backAutoScrollSpd;
         public static string backPPU;
         public static bool backFilter;
 
@@ -73,6 +74,7 @@ namespace StageLoader
             backParX = $"{ActiveBattleBackgroundData.BackgroundBack_ParralaxSpeedX}";
             backParY = $"{ActiveBattleBackgroundData.BackgroundBack_ParralaxSpeedY}";
             backAnimSpd = $"{ActiveBattleBackgroundData.BackgroundBack_AnimationSpeed}";
+            backAutoScrollSpd = $"{ActiveBattleBackgroundData.BackgroundBack_AutoscrollSpeed}";
             backPPU = $"{(ActiveBattleBackgroundData.BackgroundBack_Sprite ? ActiveBattleBackgroundData.BackgroundBack_Sprite.pixelsPerUnit : 0)}";
             backFilter = ActiveBattleBackgroundData.BackgroundBack_Sprite && ActiveBattleBackgroundData.BackgroundBack_Sprite.texture.filterMode != FilterMode.Point;
 
@@ -227,12 +229,16 @@ namespace StageLoader
             backAnimSpd = GUI.TextField(new Rect(theX + 96 + 16, theY + sep * 3, 128 + 8, 20), backAnimSpd);
             float.TryParse(backAnimSpd, out ActiveBattleBackgroundData.BackgroundBack_AnimationSpeed);
 
-            GUI.Label(new Rect(theX, theY + sep * 4, 128, 32), "Pixels per unit");
-            string newPPU = GUI.TextField(new Rect(theX + 96 + 16, theY + sep * 4, 128 + 8, 20), backPPU);
+            GUI.Label(new Rect(theX, theY + sep * 4, 128, 32), "Autoscroll speed");
+            backAutoScrollSpd = GUI.TextField(new Rect(theX + 96 + 16, theY + sep * 4, 128 + 8, 20), backAutoScrollSpd);
+            float.TryParse(backAutoScrollSpd, out ActiveBattleBackgroundData.BackgroundBack_AutoscrollSpeed);
+
+            GUI.Label(new Rect(theX, theY + sep * 5, 128, 32), "Pixels per unit");
+            string newPPU = GUI.TextField(new Rect(theX + 96 + 16, theY + sep * 5, 128 + 8, 20), backPPU);
             if (newPPU != backPPU) changesMade = true;
             backPPU = newPPU;
 
-            bool newBool = GUI.Toggle(new Rect(theX, theY + sep * 5, 128 + 8, 32), bgFilter, "Texture filter");
+            bool newBool = GUI.Toggle(new Rect(theX, theY + sep * 6, 128 + 8, 32), bgFilter, "Texture filter");
             if (bgFilter != newBool) changesMade = true;
             bgFilter = newBool;
 
@@ -439,20 +445,27 @@ namespace StageLoader
                 return;
             }
 
-            if (GUI.Button(new Rect(32, 32, w/2-64, 24), "Backgrounds"))
+            if (!isCustomStage)
             {
-                editingSky = false;
+                GUI.Label(new Rect(8, 64, 128, 32), "StageLoader Editor is not available on vanilla stages.");
             }
-
-            if (GUI.Button(new Rect(w/2+32, 32, w/2-64, 24), "Movement Rush skies"))
-            {
-                editingSky = true;
-            }
-
-            if (editingSky)
-                SkyGUI(w, h);
             else
-                BackgroundGUI(w, h);
+            {
+                if (GUI.Button(new Rect(32, 32, w/2-64, 24), "Backgrounds"))
+                {
+                    editingSky = false;
+                }
+
+                if (GUI.Button(new Rect(w/2+32, 32, w/2-64, 24), "Movement Rush skies"))
+                {
+                    editingSky = true;
+                }
+
+                if (editingSky)
+                    SkyGUI(w, h);
+                else
+                    BackgroundGUI(w, h);
+            }
 
             GUI.EndGroup();
         }
