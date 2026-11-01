@@ -28,11 +28,11 @@ namespace StageLoader
         {
             OriginalStageArray = BattleCache.StageArray;
 
-            SMBZModsMenu.Core.ModEntries.Add(new()
+            SMBZCoreMod.ModEntries.Add(new()
             {
                 info = Info,
                 reloadFunction = LoadCustomStages,
-                updateLocation = SMBZModsMenu.ModUpdateLocation.Github,
+                updateLocation = SMBZModEntries.ModUpdateLocation.Github,
                 updateRepo = "headshot2017/smbzg-stageloader"
             });
 
